@@ -6,52 +6,24 @@ int main()
 {
     printf("Hello world!\n");
 
-    struct matrix *mat = allocate_matrix(JPG_FORMAT, 3, 3);
+    struct matrix *mat = allocate_matrix(JPG_FORMAT, 1, 1);
     if (mat == NULL)
     {
         printf("Unable to allocate matrix.\n");
         return 0;
     }
-    write_rgb565_pixel(0xFF, 0xFF, 0xFF, mat, 0, 0);
-    write_rgb565_pixel(0xFF, 0xFF, 0xFF, mat, 1, 1);
-    write_rgb565_pixel(0xFF, 0xFF, 0xFF, mat, 2, 2);
+    // write_rgb565_pixel_code(0x07ff, mat, 0, 0);
+    // write_rgb565_pixel_rgb(0xFF, 0x00, 0x00, mat, 0, 0);
+    write_rgb565_pixel_rgb(0xFF, 0xFF, 0x00, mat, 0, 0);
+
+    // write_rgb565_pixel_rgb(0xFF, 0xFF, 0xFF, mat, 1, 1);
+    // write_rgb565_pixel_rgb(0xFF, 0xFF, 0xFF, mat, 1, 0);
 
     print_matrix(mat);
 
-    const char* test_path = "test.bmp";
+    const char* test_path = "application.bmp";
 
-    struct BMPFileHeader* header_ptr = allocate_bmpfileheader();
-    struct BMPInfoHeader* info_ptr = allocate_bmpinfoheader();
-    struct BMPColorHeader* color_ptr = allocate_bmpcolorheader();
+    write_rgb565_bmpfile(test_path, mat);
 
-    if(header_ptr == NULL) {
-        printf("Unable to allocate BMPFileHeader.\n");
-        return -1;
-    }
-
-    if(info_ptr == NULL) {
-        printf("Unable to allocate BMPInfoHeader.\n");
-        return -1;
-    }
-
-    if(color_ptr == NULL) {
-        printf("Unable to allocate BMPColorHeader.\n");
-        return -1;
-    }
-
-    FILE *fileptr = fopen(test_path, "wb");
-    if(fileptr == NULL) {
-        printf("Unable to open %s for binary writing.\n", test_path);
-        return -1;
-    }
-
-    fwrite(header_ptr, sizeof(struct BMPFileHeader), 1, fileptr);
-    fwrite(info_ptr, sizeof(struct BMPInfoHeader), 1, fileptr);
-    fwrite(color_ptr, sizeof(struct BMPColorHeader), 1, fileptr);
-
-    fclose(fileptr);
-
-    deallocate_bmpfileheader(header_ptr);
-    deallocate_bmpinfoheader(info_ptr);
-    deallocate_bmpcolorheader(color_ptr);
+    deallocate_matrix(mat);
 }
