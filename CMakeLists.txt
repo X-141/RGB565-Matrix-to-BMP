@@ -6,8 +6,13 @@ include_directories( "include" )
 
 file( GLOB SOURCES "src/*.c" "include/*.h" )
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+
 add_executable(matrix ${SOURCES})
+
+target_link_libraries(matrix m)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+
 include(CPack)
