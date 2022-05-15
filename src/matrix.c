@@ -6,6 +6,14 @@
 #include "matrix.h"
 #include "printf.h"
 
+#define RED_PIXEL_MASK (uint8_t)(0x1F)
+#define GREEN_PIXEL_MASK (uint8_t)(0x3F)
+#define BLUE_PIXEL_MASK (uint8_t)(0x1F)
+
+// #define RED_MASK (uint16_t)(0x00F8)
+// #define GREEN_MASK (uint16_t)(0xE007)
+// #define BLUE_MASK (uint16_t)(0x1F00)
+
 int8_t zero_matrix(struct matrix *mat)
 {
     if (!mat)
@@ -110,8 +118,39 @@ uint8_t print_matrix(struct matrix *mat)
     return 0;
 }
 
-void write_rgb565_pixel(uint8_t red, uint8_t green, uint8_t blue,
-                        struct matrix *mat, uint16_t row, uint16_t column)
+uint32_t calculate_offset(uint16_t row, uint16_t column, struct matrix *mat)
+{
+    if (mat == NULL)
+    {
+        printf("calculate_offset: Unable to calculate offset of NULL mat.\n");
+        return 0;
+    }
+
+    if (row < 0 || row >= mat->vertical)
+    {
+        printf("calculate_offset: Row parameter is invalid. < 0 || row >= horiz.dim");
+        return 0;
+    }
+
+    if (column < 0 || column >= mat->horizontal)
+    {
+        printf("calculate_offset: column parameter is invalid. < 0 || row >= vertic.dim");
+        return 0;
+    }
+
+    uint32_t offset = row * mat->vertical * mat->channel + column * mat->channel;
+
+    if (offset >= mat->size)
+    {
+        printf("calculate_offset: Calculated offset is greater than matrix size");
+        return 0;
+    }
+
+    return offset;
+}
+
+void write_rgb565_pixel_rgb(uint8_t red, uint8_t green, uint8_t blue,
+                            struct matrix *mat, uint16_t row, uint16_t column)
 {
     if (mat == NULL)
     {
@@ -119,15 +158,24 @@ void write_rgb565_pixel(uint8_t red, uint8_t green, uint8_t blue,
         return;
     }
 
-    uint32_t offset = row * mat->vertical * mat->channel + column * mat->channel;
+    uint32_t offset = calculate_offset(row, column, mat);
 
-    if (offset >= mat->size)
+    mat->mem[offset + 0] = red & RED_PIXEL_MASK;
+    mat->mem[offset + 1] = green & GREEN_PIXEL_MASK;
+    mat->mem[offset + 2] = blue & BLUE_PIXEL_MASK;
+}
+
+void write_rgb565_pixel_code(uint16_t color, struct matrix *mat, uint16_t row, uint16_t column)
+{
+    if (mat == NULL)
     {
-        printf("write_color: computed offset value to index underlying matrix is greater than actual size. Likely error in my code.\n");
+        printf("write_rgb565_pixel_code: mat passed is NULL.\n");
         return;
     }
 
-    mat->mem[offset + 0] = red & 0x1F;
-    mat->mem[offset + 1] = green & 0x3F;
-    mat->mem[offset + 2] = blue & 0x1F;
+    uint32_t offset = calculate_offset(row, column, mat);
+
+    mat->mem[offset + 0] = (color >> 11) & RED_PIXEL_MASK;  // RED
+    mat->mem[offset + 1] = (color >> 5) & GREEN_PIXEL_MASK; // GREEN
+    mat->mem[offset + 2] = (color & BLUE_PIXEL_MASK);       // BLUE
 }

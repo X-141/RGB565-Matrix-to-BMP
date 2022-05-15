@@ -1,10 +1,13 @@
 #ifndef MATRIX_H
+#define MATRIX_H
 
 #include <stdint.h>
 
 #define JPG_FORMAT (uint8_t)(1)
 #define JPG_FORMAT_CHANNELS (uint8_t)(3)
 #define ERROR (int8_t)(-1)
+
+#define UNSAFE_CALC_OFFSET(ROW, COL, MAT) (ROW * MAT->vertical * MAT->channel + COL * MAT->channel)
 
 /**
  * @brief Data structure that encapsulates the matrix
@@ -42,7 +45,11 @@ void deallocate_matrix(struct matrix *mat);
 
 uint8_t print_matrix(struct matrix *mat);
 
-void write_rgb565_pixel(uint8_t red, uint8_t green, uint8_t blue,
+uint32_t calculate_offset(uint16_t row, uint16_t column, struct matrix* mat);
+
+void write_rgb565_pixel_rgb(uint8_t red, uint8_t green, uint8_t blue,
                         struct matrix *mat, uint16_t row, uint16_t column);
+
+void write_rgb565_pixel_code(uint16_t color, struct matrix* mat, uint16_t row, uint16_t column);
 
 #endif
