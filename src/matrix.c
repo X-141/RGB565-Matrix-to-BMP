@@ -128,21 +128,21 @@ uint32_t calculate_offset(uint16_t row, uint16_t column, struct matrix *mat)
 
     if (row < 0 || row >= mat->vertical)
     {
-        printf("calculate_offset: Row parameter is invalid. < 0 || row >= horiz.dim");
+        printf("calculate_offset: Row parameter is invalid. < 0 || row >= horiz.dim.\n");
         return 0;
     }
 
     if (column < 0 || column >= mat->horizontal)
     {
-        printf("calculate_offset: column parameter is invalid. < 0 || row >= vertic.dim");
+        printf("calculate_offset: column parameter is invalid. < 0 || row >= vertic.dim.\n");
         return 0;
     }
 
-    uint32_t offset = row * mat->vertical * mat->channel + column * mat->channel;
+    uint32_t offset = row * mat->horizontal * mat->channel + column * mat->channel;
 
     if (offset >= mat->size)
     {
-        printf("calculate_offset: Calculated offset is greater than matrix size");
+        printf("calculate_offset: Calculated offset is greater than matrix size.\n");
         return 0;
     }
 
