@@ -267,7 +267,8 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
 
     uint32_t index = 0;
     uint32_t row_raw_length = 0;
-    int toggle_padding = (ceil((16.0 * mat->horizontal) / 32.0) * 4) - (mat->horizontal * 2);
+    // int toggle_padding = (ceil((16.0 * mat->horizontal) / 32.0) * 4) - (mat->horizontal * 2);
+    int toggle_padding = ((mat->horizontal % 2) == 0) ? 0 : 1;
     for (int32_t row = (mat->vertical - 1); row >= 0; row--)
     {
         index = UNSAFE_CALC_OFFSET(row, 0, mat);
@@ -279,17 +280,13 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
             red_color = mat->mem[index] & 0x001F;
             red_color = bswap_16(red_color);
             red_data = 0x0000;
-            red_data |= (red_color << 3);
-            red_data &= 0xF800;
+            red_data |= ((red_color << 3) & 0xF800);
 
             // Likely a better way to write this
             green_color = mat->mem[index + 1] & 0x003F;
             green_color = bswap_16(green_color);
             green_data = 0x0000;
-            green_data |= (green_color << 2);
-            green_data &= 0xE000;
-            green_data |= (green_color >> 8);
-            green_data &= 0xE007;
+            green_data |= ((green_color << 2) | (green_color >> 8)) & 0xE007;
             green_data = bswap_16(green_data);
 
             blue_color = mat->mem[index + 2] & 0x001F;
