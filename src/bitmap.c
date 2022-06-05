@@ -61,7 +61,7 @@ void set_bmpfileheader_filesize(const struct matrix *mat, struct BMPFileHeader *
     }
 
     uint32_t *file_size = (uint32_t *)bmpFileHeaderPtr->file_size;
-    *file_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + BMP_COLR_HEADER_SIZE + (mat->horizontal * mat->vertical * 4);
+    *file_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE + BMP_COLR_HEADER_SIZE + (mat->horizontal * mat->vertical * mat->channel);
 }
 
 struct BMPInfoHeader *allocate_bmpinfoheader()
@@ -75,7 +75,8 @@ struct BMPInfoHeader *allocate_bmpinfoheader()
     }
 
     uint32_t *header_size = (uint32_t *)ptr->header_size;
-    *header_size = 0x0000007C;
+    // *header_size = 0x0000007C;
+    *header_size = 0x00000028;
 
     int32_t *width = (int32_t *)ptr->width;
     // *width = 0x00000001;
@@ -138,6 +139,9 @@ void set_bmpinfoheader_dimensions(const struct matrix *mat, struct BMPInfoHeader
 
     int32_t *height = (int32_t *)bmpInfoHeaderPtr->height;
     *height = mat->vertical;
+
+    uint32_t *image_size = (uint32_t *)bmpInfoHeaderPtr->size_image;
+    *image_size = mat->horizontal * mat->vertical * mat->channel;
 }
 
 struct BMPColorHeader *allocate_bmpcolorheader()
@@ -145,13 +149,13 @@ struct BMPColorHeader *allocate_bmpcolorheader()
     struct BMPColorHeader *ptr = (struct BMPColorHeader *)malloc(sizeof(struct BMPColorHeader));
 
     uint32_t *red_mask = (uint32_t *)ptr->red_mask;
-    *red_mask = 0x0000F800;
+    *red_mask = 0x000000F8; // Written to file as F800 0000
 
     uint32_t *green_mask = (uint32_t *)ptr->green_mask;
-    *green_mask = 0x000007E0;
+    *green_mask = 0x0000E007; // Written to file as 07E0 0000
 
     uint32_t *blue_mask = (uint32_t *)ptr->blue_mask;
-    *blue_mask = 0x0000001F;
+    *blue_mask = 0x00001F00; // Writtent to file as 001F 0000
 
     uint32_t *alpha_mask = (uint32_t *)ptr->alpha_mask;
     *alpha_mask = 0x00000000;
@@ -216,9 +220,6 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
     uint16_t green_data = 0x0000;
     uint16_t red_data = 0x0000;
     uint16_t blue_data = 0x0000;
-    uint16_t red_color = 0x0000;
-    uint16_t green_color = 0x0000;
-    uint16_t blue_color = 0x0000;
     uint16_t padding = 0x0000;
 
     uint32_t index = 0;
@@ -232,23 +233,10 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
         while (index < row_raw_length)
         {
             working_data = 0x0000;
-
-            red_color = mat->mem[index];
-            red_color = bswap_16(red_color);
-            red_data = 0x0000;
-            red_data |= ((red_color << 3) & 0xF800);
-
-            // Likely a better way to write this
-            green_color = mat->mem[index + 1] & 0x003F;
-            green_color = bswap_16(green_color);
-            green_data = 0x0000;
-            green_data |= ((green_color << 2) | (green_color >> 8)) & 0xE007;
-            green_data = bswap_16(green_data);
-
-            blue_color = mat->mem[index + 2];
-            blue_color = bswap_16(blue_color);
-            blue_data = 0x0000;
-            blue_data |= ((blue_color >> 6) & 0x00F8);
+            
+            red_data = ((mat->mem[index] << 11) & 0xF800);
+            green_data = ((mat->mem[index + 1] << 5) & 0x07e0);
+            blue_data = (mat->mem[index + 2] & 0x001f);
 
             working_data = (green_data | red_data | blue_data);
             working_data &= 0xFFFF;
