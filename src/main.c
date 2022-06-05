@@ -4,7 +4,7 @@
 
 int main()
 {
-    struct matrix *mat = allocate_matrix(JPG_FORMAT, 24, 24);
+    struct matrix *mat = allocate_matrix(24, 24);
     if (mat == NULL)
     {
         printf("Unable to allocate matrix.\n");

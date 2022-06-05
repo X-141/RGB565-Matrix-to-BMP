@@ -180,23 +180,22 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
     struct BMPInfoHeader *info_ptr = allocate_bmpinfoheader();
     struct BMPColorHeader *color_ptr = allocate_bmpcolorheader();
 
-    // TODO: This causes memory leaks
     if (header_ptr == NULL)
     {
         printf("Unable to allocate BMPFileHeader.\n");
-        goto cleanup_file_header;
+        return;
     }
 
     if (info_ptr == NULL)
     {
         printf("Unable to allocate BMPInfoHeader.\n");
-        goto cleanup_info_header;
+        goto cleanup_file_header;
     }
 
     if (color_ptr == NULL)
     {
         printf("Unable to allocate BMPColorHeader.\n");
-        goto cleanup_everything;
+        goto cleanup_info_header;
     }
 
     set_bmpfileheader_filesize(mat, header_ptr);
@@ -225,7 +224,6 @@ void write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
     uint32_t index = 0;
     uint32_t row_raw_length = 0;
     uint32_t row_length = mat->horizontal * mat->channel;
-    // int toggle_padding = (ceil((16.0 * mat->horizontal) / 32.0) * 4) - (mat->horizontal * 2);
     int toggle_padding = ((mat->horizontal % 2) == 0) ? 0 : 1;
     for (int32_t row = (mat->vertical - 1); row >= 0; row--)
     {
