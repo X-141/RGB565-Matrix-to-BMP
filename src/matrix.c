@@ -10,10 +10,6 @@
 #define GREEN_PIXEL_MASK (uint8_t)(0x3F)
 #define BLUE_PIXEL_MASK (uint8_t)(0x1F)
 
-// #define RED_MASK (uint16_t)(0x00F8)
-// #define GREEN_MASK (uint16_t)(0xE007)
-// #define BLUE_MASK (uint16_t)(0x1F00)
-
 int8_t zero_matrix(struct matrix *mat)
 {
     if (!mat)
@@ -37,7 +33,7 @@ int8_t zero_matrix(struct matrix *mat)
     return 0;
 }
 
-struct matrix *allocate_matrix(uint8_t type, uint16_t horizontal_dim, uint16_t vertical_dim)
+struct matrix *allocate_matrix(uint16_t horizontal_dim, uint16_t vertical_dim)
 {
     struct matrix *mat = (struct matrix *)malloc(sizeof(struct matrix));
     if (!mat)
@@ -48,16 +44,7 @@ struct matrix *allocate_matrix(uint8_t type, uint16_t horizontal_dim, uint16_t v
 
     mat->horizontal = horizontal_dim;
     mat->vertical = vertical_dim;
-
-    switch (type)
-    {
-    case JPG_FORMAT:
-        mat->channel = JPG_FORMAT_CHANNELS;
-        break;
-    default:
-        printf("allocate_matrix: Type indicated is not known.\n");
-        return NULL;
-    }
+    mat->channel = 3;
 
     mat->size = mat->horizontal * mat->vertical * mat->channel;
     mat->mem = (uint8_t *)malloc(sizeof(uint8_t) * (mat->size));

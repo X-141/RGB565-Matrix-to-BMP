@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 
-#define JPG_FORMAT (uint8_t)(1)
-#define JPG_FORMAT_CHANNELS (uint8_t)(3)
 #define ERROR (int8_t)(-1)
 
 #define UNSAFE_CALC_OFFSET(ROW, COL, MAT) (ROW * MAT->vertical * MAT->channel + COL * MAT->channel)
@@ -33,7 +31,7 @@ struct matrix
  */
 int8_t zero_matrix(struct matrix *mat);
 
-struct matrix *allocate_matrix(uint8_t type, uint16_t horizontal_dim, uint16_t vertical_dim);
+struct matrix *allocate_matrix(uint16_t horizontal_dim, uint16_t vertical_dim);
 
 /**
  * @brief Deallocate data_ptr.
