@@ -29,8 +29,8 @@ The total length of the Info Header is 40 bytes.
 | Bit Count | 2 unsigned bytes | Number of bits per pixel. Set as ***0x0010*** (16 bits per pixel) |
 | Compression | 4 unsigned bytes | Compression method used. Not used in this repo. Set as ***0x00000000***
 | Image Size | 4 unsigned bytes | Size of the raw image. (length * width * channel) |
-| X Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00002E23*** |
-| Y Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00002E23*** |
+| X Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00000000*** |
+| Y Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00000000*** |
 | Color Used | 4 unsigned bytes | Number of colors in the palette. Set as ***0x00000000***
 | Important Colors | 4 unsigned bytes | Number of important colors. Set as ***0x00000000***|
 
@@ -42,11 +42,11 @@ Because we are using the RGB565 format, that means each pixel needs to be 16 bit
 The total length of the Color Header is 84 bytes.
 | Field | Length (bytes) | Notes |
 | -- | -- | -- |
-| Red Mask | 4 unsigned bytes | Which set of bits represent the color red. Set as ***0x0000F800*** <sub>1</sub>
-| Green Mask | 4 unsigned bytes | Which set of bits represent the color green. Set as ***0x000007E0*** <sub>2</sub>
-| Blue Mask | 4 unsigned bytes | Which set of bits represent the color blue. Set as ***0x0000001F*** <sub>3</sub>
+| Red Mask | 4 unsigned bytes | Which set of bits represent the color red. Set as ***0x000000F8*** <sub>1</sub>
+| Green Mask | 4 unsigned bytes | Which set of bits represent the color green. Set as ***0x0000E007*** <sub>2</sub>
+| Blue Mask | 4 unsigned bytes | Which set of bits represent the color blue. Set as ***0x00001F00*** <sub>3</sub>
 | Alpha Mask | 4 unsigned bytes | Which set of bits represent transparenct. Not used. Set as ***0x00000000***
-| Unused | 64 unsigned bytes | Unused space in the color header. All set to ***0x00***.
+| Unused | 68 unsigned bytes | Unused space in the color header. All set to ***0x00***.
 
  1. The first 5 bits represent the color red:           1111100000000000
  2. The subsequent 6 bits represent the color green:    0000011111100000
@@ -85,9 +85,11 @@ Blue pixel value in Matrix (unsigned byte)
 
 The result is that we now have a pixel in the matrix that represents the three colors in the correct RGB565 requirement. Red and blue can only have at most 5 bits, and green can have at most 6 bits.
 
-TODO finish up this document.
+Now that we have our pixel data, we can go ahead and begin writing them to a file to generate a BMP. To do that we first write out our header data in this order: File Header, Info Header, and Color Table.
 
+Now that we have written out some preliminary data, we can start writing out 
 
 ### Citations
 Always gotta cite your sources!
  * https://en.wikipedia.org/wiki/BMP_file_format
+ * https://cdn.hackaday.io/files/274271173436768/Simplified%20Windows%20BMP%20Bitmap%20File%20Format%20Specification.htm
