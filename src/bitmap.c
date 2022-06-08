@@ -24,7 +24,6 @@ struct BMPFileHeader *allocate_bmpfileheader()
     *file_type = 0x4D42;
 
     uint32_t *file_size = (uint32_t *)ptr->file_size;
-    // *file_size = 0x0000008E;
     *file_size = 0x00000000;
 
     uint16_t *reserved_1 = (uint16_t *)ptr->reserved_1;
@@ -75,15 +74,12 @@ struct BMPInfoHeader *allocate_bmpinfoheader()
     }
 
     uint32_t *header_size = (uint32_t *)ptr->header_size;
-    // *header_size = 0x0000007C;
     *header_size = 0x00000028;
 
     int32_t *width = (int32_t *)ptr->width;
-    // *width = 0x00000001;
     *width = 0x00000000;
 
     int32_t *height = (int32_t *)ptr->height;
-    // *height = 0x00000001;
     *height = 0x00000000;
 
     uint16_t *planes = (uint16_t *)ptr->planes;
@@ -96,13 +92,13 @@ struct BMPInfoHeader *allocate_bmpinfoheader()
     *compression = 0x00000000;
 
     uint32_t *size_image = (uint32_t *)ptr->size_image;
-    *size_image = 0x00000004;
+    *size_image = 0x00000000;
 
     uint32_t *x_pixels_per_meter = (uint32_t *)ptr->x_pixels_per_meter;
-    *x_pixels_per_meter = 0x00002E23;
+    *x_pixels_per_meter = 0x00000000;
 
     uint32_t *y_pixels_per_meter = (uint32_t *)ptr->y_pixels_per_meter;
-    *y_pixels_per_meter = 0x00002E23;
+    *y_pixels_per_meter = 0x00000000;
 
     uint32_t *color_used = (uint32_t *)ptr->colors_used;
     *color_used = 0x00000000;
@@ -155,15 +151,12 @@ struct BMPColorHeader *allocate_bmpcolorheader()
     *green_mask = 0x0000E007; // Written to file as 07E0 0000
 
     uint32_t *blue_mask = (uint32_t *)ptr->blue_mask;
-    *blue_mask = 0x00001F00; // Writtent to file as 001F 0000
+    *blue_mask = 0x00001F00; // Written to file as 001F 0000
 
     uint32_t *alpha_mask = (uint32_t *)ptr->alpha_mask;
     *alpha_mask = 0x00000000;
 
-    uint32_t *color_space_type = (uint32_t *)ptr->color_space_type;
-    *color_space_type = 0x73524742;
-
-    for (uint8_t index = 0; index < 64; index++)
+    for (uint8_t index = 0; index < 68; index++)
     {
         ptr->unused[index] = 0x00;
     }

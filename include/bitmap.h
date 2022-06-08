@@ -51,8 +51,8 @@ struct BMPColorHeader
     uint8_t blue_mask[4];
     uint8_t alpha_mask[4];
 
-    uint8_t color_space_type[4];
-    uint8_t unused[64];
+    // uint8_t color_space_type[4];
+    uint8_t unused[68];
 };
 
 struct BMPColorHeader *allocate_bmpcolorheader();
