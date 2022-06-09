@@ -87,7 +87,47 @@ The result is that we now have a pixel in the matrix that represents the three c
 
 Now that we have our pixel data, we can go ahead and begin writing them to a file to generate a BMP. To do that we first write out our header data in this order: File Header, Info Header, and Color Table.
 
-Now that we have written out some preliminary data, we can start writing out 
+Now that we have written out some preliminary data, we can start writing out the actual pixel data. There's a couple ground rules you should know about when writing pixel data:
+
+ * Pixels are written out from bottom up, left to right.
+ * Each row is a multiple of 4 bytes.
+
+When writing out the actual pixel value, since we indicated that each pixel is 16 bits long, it is expected that we take each our channels (red, blue, and green) and fit it within that 16 bit range. As was mentioned previously, we have the masking values:
+ 1. Red: 1111100000000000
+ 2. Green: 0000011111100000
+ 3. Blue: 0000000000011111
+
+So as long as we shift and merge in our bits correctly, we will be within the 16 bit spec.
+
+Now going over the point about *Each row is a multiple of 4*. That does require a little bit of explaination. As we are iteration from bottom-up-left-right, each row we write has to be padded if the horizontal dimension is odd. 
+
+So if we write out a 1x1 bitmap, we have the following stored (written) byte data (assuming color set is 0x0000)
+
+[ 00000000 00000000 ]
+
+Unfortunately, this would not satisfy our 2nd rule for bitmaps. We need to pad the data such that there is 2 more bytes written (such that the total bytes in that row is a multiple of 4)
+
+[ 00000000 00000000 00000000 00000000 ]
+
+Another example. If we had a image with dimensions 3x4 we have the bitmap, here is what the stored data would look like without the required padding. (Now if we wanted to be accurate, the matrix below would be all in a single row, but this is just for clarity sake)
+
+[   00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000
+]
+
+Notice that each row is only six bytes long! This is not satisfactory. Obviously we need to add two more bytes in order to actually have the correct format. But how do we know at runtime for various unknown dimensions how many bytes we need to add for padding?
+
+Currently no computational formula is used, with a bit of trickery (plugging in horizontal values and seeing a pattern). If the horizontal dimension is odd, the number of bytes needed for padding will always be two. If the horizontal dimension is even, no padding is required.
+
+So since the horizontal dimension is odd, we add two more bytes to have the correct stored data.
+
+[   00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+]
 
 ### Citations
 Always gotta cite your sources!
