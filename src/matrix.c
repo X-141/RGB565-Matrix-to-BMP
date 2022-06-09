@@ -10,7 +10,7 @@
 #define GREEN_PIXEL_MASK (uint8_t)(0x3F)
 #define BLUE_PIXEL_MASK (uint8_t)(0x1F)
 
-int8_t zero_matrix(struct matrix *mat) {
+enum mat_fn_status zero_matrix(struct matrix *mat) {
   if (!mat) {
     printf("zero_matrix: data_ptr is NULL.\n");
     return NULL_MAT;
