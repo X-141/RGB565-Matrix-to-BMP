@@ -59,7 +59,7 @@ struct matrix *allocate_matrix(uint16_t horizontal_dim, uint16_t vertical_dim);
 /// Deallocate existing matrix structure
 /// </summary>
 /// <param name="mat">Pointer to a matrix struct</param>
-/// <returns>Return VALID_OP on success, not otherwise.</return>
+/// <returns>Return VALID_OP on success, not otherwise.</returns>
 enum mat_fn_status deallocate_matrix(struct matrix *mat);
 
 /// <summary>
@@ -94,5 +94,50 @@ enum mat_fn_status write_rgb565_pixel_rgb(uint8_t red, uint8_t green,
 /// <returns>Return VALID_OP on success, not otherwise.</returns>
 enum mat_fn_status write_rgb565_pixel_code(uint16_t color, struct matrix *mat,
                                            uint16_t row, uint16_t column);
+
+/// <summary>
+/// Given a x position (column), draw a straight line from start_y to
+/// end_y.
+/// </summary>
+/// <param name="color">Color of the line</param>
+/// <param name="pt_size">Size of the line</param>
+/// <param name="mat">Pointer to matrix structure</param>
+/// <param name="x_position">Column position to draw line</param>
+/// <param name="start_y">Starting row position</param>
+/// <param name="end_y">Ending row position</param>
+void draw_perfect_vertical_line(uint16_t color, uint16_t pt_size,
+                                struct matrix *mat, uint16_t x_position,
+                                uint16_t start_y, uint16_t end_y);
+
+/// <summary>
+/// Given a y position (row), draw a straight line from start_x to end_x
+/// </summary>
+/// <param name="color">Color of the line</param>
+/// <param name="pt_size">Size of the line</param>
+/// <param name="mat">Pointer to matrix structure</param>
+/// <param name="y_position">Row position to draw line</param>
+/// <param name="start_x">Starting column position</param>
+/// <param name="end_x">Ending colujmn position</param>
+void draw_perfect_horizontal_line(uint16_t color, uint16_t pt_size,
+                                  struct matrix *mat, uint16_t y_position,
+                                  uint16_t start_x, uint16_t end_x);
+
+/// <summary>
+/// Draw rectangle starting from one corner (start_x, start_y) to opposite
+/// corner (end_x, end_y)
+/// </summary>
+/// <param name="color">Color of the rectangle</param>
+/// <param name="pt_size">Size of the lines</param>
+/// <param name="mat">Pointer to matrix structure</param>
+/// <param name="start_x">X position of initial corner</param>
+/// <param name="start_y">Y position of initial corner</param>
+/// <param name="end_x">X position of opposite corner</param>
+/// <param name="end_y">Y position of opposite corner</param>
+void draw_rectangle(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                    uint16_t start_x, uint16_t start_y, uint16_t end_x,
+                    uint16_t end_y);
+
+// uint8_t fill_pixel(uint16_t color, uint16_t pt_size, struct matrix *mat,
+//                    uint16_t row, uint16_t column);
 
 #endif

@@ -154,3 +154,173 @@ enum mat_fn_status write_rgb565_pixel_code(uint16_t color, struct matrix *mat,
 
   return VALID_OP;
 }
+
+uint8_t static validate_horizontal_dimension(uint16_t horizontal_dim,
+                                             uint16_t start_x, uint16_t end_x) {
+  if (start_x >= horizontal_dim || start_x < 0) {
+    printf("validate_horizontal_dimension: start_x dimension is invalid");
+    return 1;
+  }
+
+  if (end_x >= horizontal_dim || end_x < 0) {
+    printf("validate_horizontal_dimension: end_x dimension is invalid");
+    return 1;
+  }
+
+  return 0;
+}
+
+uint8_t static validate_vertical_dimension(uint16_t vertical_dim,
+                                           uint16_t start_y, uint16_t end_y) {
+  if (start_y >= vertical_dim || start_y < 0) {
+    printf("validate_vertical_dimension: start_y dimension is invalid");
+    return 1;
+  }
+
+  if (start_y >= vertical_dim || start_y < 0) {
+    printf("validate_vertical_dimension: end_y dimension is invalid");
+    return 1;
+  }
+
+  return 0;
+}
+
+uint8_t static validate_points_fall_in_bounds(uint16_t horizontal_dim,
+                                              uint16_t vertical_dim,
+                                              uint16_t start_x,
+                                              uint16_t start_y, uint16_t end_x,
+                                              uint16_t end_y) {
+
+  if (validate_horizontal_dimension(horizontal_dim, start_x, end_x)) {
+    printf("validate_points_fall_in_bounds: horizontal dimensions found to be "
+           "invalid.\n");
+    return 1;
+  }
+
+  if (validate_vertical_dimension(vertical_dim, start_y, end_y)) {
+    printf("validate_points_fall_in_bounds: vertical dimensions found to be "
+           "invalid.\n");
+    return 1;
+  }
+
+  return 0;
+}
+
+uint8_t static fill_pixel(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                          uint16_t row, uint16_t column) {
+
+  if (pt_size == 0) {
+    printf("Invalid pixel size. returning.\n");
+    return 1;
+  } else if (pt_size == 1) {
+    printf("Writing 0xFFFF to (%d, %d).\n", column, row);
+    uint32_t offset = calculate_offset(row, column, mat);
+    printf("%ld offset.\n", offset);
+
+    mat->mem[offset + 0] = (color >> 11) & RED_PIXEL_MASK;  // RED
+    mat->mem[offset + 1] = (color >> 5) & GREEN_PIXEL_MASK; // GREEN
+    mat->mem[offset + 2] = (color & BLUE_PIXEL_MASK);       // BLUE
+    return 0;
+  }
+
+  uint16_t position_offset;
+
+  int32_t start_position_row;
+  int32_t start_position_column;
+
+  int32_t end_position_row;
+  int32_t end_position_column;
+
+  position_offset = pt_size - 1;
+
+  start_position_row = row - position_offset;
+  start_position_column = column - position_offset;
+
+  end_position_row = row + position_offset;
+  end_position_column = column + position_offset;
+  if (start_position_row < 0) {
+    start_position_row = 0;
+  }
+
+  if (start_position_column < 0) {
+    start_position_column = 0;
+  }
+
+  if (end_position_row >= mat->vertical) {
+    end_position_row = mat->vertical - 1;
+  }
+
+  if (end_position_column >= mat->horizontal) {
+    end_position_column = mat->horizontal - 1;
+  }
+
+  printf("Starting (%d, %d) to Ending (%d, %d).\n", start_position_column,
+         start_position_row, end_position_column, end_position_row);
+
+  for (uint16_t row = start_position_row; row <= end_position_row; row++) {
+    for (uint16_t col = start_position_column; col <= end_position_column;
+         col++) {
+      printf("Writing 0xFFFF to (%d, %d).\n", col, row);
+      uint32_t offset = calculate_offset(row, col, mat);
+      printf("%ld offset.\n", offset);
+
+      mat->mem[offset + 0] = (color >> 11) & RED_PIXEL_MASK;  // RED
+      mat->mem[offset + 1] = (color >> 5) & GREEN_PIXEL_MASK; // GREEN
+      mat->mem[offset + 2] = (color & BLUE_PIXEL_MASK);       // BLUE
+    }
+  }
+
+  return 0;
+}
+
+void draw_perfect_horizontal_line(uint16_t color, uint16_t pt_size,
+                                  struct matrix *mat, uint16_t row,
+                                  uint16_t start_col, uint16_t end_col) {
+  if (mat == NULL) {
+    printf("draw_rectangle: mat passed is NULL.\n");
+    return;
+  }
+
+  if (start_col == end_col) {
+    write_rgb565_pixel_code(color, mat, row, start_col);
+    return;
+  }
+
+  if (start_col > end_col) {
+    uint16_t swap = end_col;
+    end_col = start_col;
+    start_col = swap;
+  }
+
+  uint8_t valid_dims =
+      validate_horizontal_dimension(mat->horizontal, start_col, end_col);
+
+  if (valid_dims) {
+    printf(
+        "draw_perfect_horizontal_line: Invalid dimension found, returning.\n");
+    return;
+  }
+
+  for (uint16_t x = start_col; x <= end_col; x++) {
+    fill_pixel(color, pt_size, mat, row, x);
+  }
+}
+
+void draw_rectangle(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                    uint16_t start_x, uint16_t start_y, uint16_t end_x,
+                    uint16_t end_y) {
+
+  if (mat == NULL) {
+    printf("draw_rectangle: mat passed is NULL.\n");
+    return;
+  }
+
+  // Check if coordinates are within bounds.
+  uint8_t valid_dims = validate_points_fall_in_bounds(
+      mat->horizontal, mat->vertical, start_x, start_y, end_x, end_y);
+
+  if (valid_dims) {
+    printf("draw_rectangle: Invalid dimension found, returning.\n");
+    return;
+  }
+}
