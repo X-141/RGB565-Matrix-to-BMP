@@ -57,8 +57,7 @@ void set_bmpfileheader_filesize(const struct matrix *mat,
 
   uint32_t *file_size = (uint32_t *)bmpFileHeaderPtr->file_size;
   *file_size = BMP_FILE_HEADER_SIZE + BMP_INFO_HEADER_SIZE +
-               BMP_COLR_HEADER_SIZE +
-               (mat->horizontal * mat->vertical * mat->channel);
+               BMP_COLR_HEADER_SIZE + (mat->horizontal * mat->vertical);
 }
 
 struct BMPInfoHeader *allocate_bmpinfoheader() {
@@ -131,7 +130,7 @@ void set_bmpinfoheader_dimensions(const struct matrix *mat,
   *height = mat->vertical;
 
   uint32_t *image_size = (uint32_t *)bmpInfoHeaderPtr->size_image;
-  *image_size = mat->horizontal * mat->vertical * mat->channel;
+  *image_size = mat->horizontal * mat->vertical;
 }
 
 struct BMPColorHeader *allocate_bmpcolorheader() {
@@ -211,34 +210,15 @@ uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat) {
   fwrite(info_ptr, sizeof(struct BMPInfoHeader), 1, fileptr);
   fwrite(color_ptr, sizeof(struct BMPColorHeader), 1, fileptr);
 
-  uint16_t working_data = 0x0000;
-  uint16_t green_data = 0x0000;
-  uint16_t red_data = 0x0000;
-  uint16_t blue_data = 0x0000;
-
   uint16_t padding = 0x0000;
-  uint32_t index = 0;
-  uint32_t row_raw_length = 0;
-  uint32_t row_length = mat->horizontal * mat->channel;
   bool toggle_padding = ((mat->horizontal % 2) == 0) ? false : true;
   for (int32_t row = (mat->vertical - 1); row >= 0; row--) {
-    index = row * row_length;
-    row_raw_length = (row + 1) * row_length;
-    while (index < row_raw_length) {
-      working_data = 0x0000;
-
-      red_data = ((mat->mem[index] << 11) & 0xF800);
-      green_data = ((mat->mem[index + 1] << 5) & 0x07e0);
-      blue_data = (mat->mem[index + 2] & 0x001f);
-
-      working_data = (green_data | red_data | blue_data);
-      working_data &= 0xFFFF;
-
-      fwrite(&working_data, sizeof(uint16_t), 1, fileptr);
-
-      index += mat->channel;
+    for (int32_t col = 0; col < mat->horizontal; col++) {
+      // uint32_t offset = calculate_offset(row, col, mat);
+      // printf("offset: %d.\n", offset);
+      fwrite((mat->mem + calculate_offset(row, col, mat)), sizeof(uint16_t), 1,
+             fileptr);
     }
-
     if (toggle_padding)
       fwrite(&padding, sizeof(uint16_t), 1, fileptr);
   }
