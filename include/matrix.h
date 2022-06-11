@@ -29,14 +29,9 @@ struct matrix {
   uint16_t vertical;
 
   /// <summary>
-  /// Number of channels at a given x,y index.
-  /// </summary>
-  uint8_t channel;
-
-  /// <summary>
   /// Pointer to the underlying memory representing the matrix.
   /// </summary>
-  uint8_t *mem;
+  uint16_t *mem;
 };
 
 /// <summary>
@@ -69,9 +64,11 @@ enum mat_fn_status deallocate_matrix(struct matrix *mat);
 /// <returns>Return VALID_OP on success, not otherwise.</returns>
 enum mat_fn_status print_matrix(struct matrix *mat);
 
+uint32_t calculate_offset(uint16_t row, uint16_t column, struct matrix *mat);
+
 /// <summary>
-/// Given individually specified color values, write data at position column,
-/// row
+/// Given individually specified color values, write data at position
+/// column, row
 /// </summary>
 /// <param name="red">Red color to write</param>
 /// <param name="green">Green color to write</param>
