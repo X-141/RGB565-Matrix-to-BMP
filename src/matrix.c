@@ -143,8 +143,8 @@ enum mat_fn_status write_rgb565_pixel_code(uint16_t color, struct matrix *mat,
   return VALID_OP;
 }
 
-uint8_t static validate_horizontal_dimension(uint16_t horizontal_dim,
-                                             uint16_t start_x, uint16_t end_x) {
+bool static validate_horizontal_dimension(uint16_t horizontal_dim,
+                                          uint16_t start_x, uint16_t end_x) {
   if (start_x >= horizontal_dim || start_x < 0) {
     printf("validate_horizontal_dimension: start_x dimension is invalid");
     return false;
@@ -246,25 +246,60 @@ uint8_t static fill_pixel(uint16_t color, uint16_t pt_size, struct matrix *mat,
   return 0;
 }
 
-void draw_perfect_horizontal_line(uint16_t color, uint16_t pt_size,
-                                  struct matrix *mat, uint16_t row,
-                                  uint16_t start_col, uint16_t end_col) {
+void draw_vertical_line(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                        uint16_t col_position, uint16_t start_row,
+                        uint16_t end_row) {
   if (mat == NULL) {
-    printf("draw_rectangle: mat passed is NULL.\n");
+    printf("draw_vertical_line: mat passed is NULL.\n");
+    return;
+  }
+
+  if (start_row == end_row) {
+    fill_pixel(color, pt_size, mat, start_row, col_position);
+    return;
+  }
+
+  if (start_row > end_row) {
+    printf("draw_vertical_line: start_row is less than end_row.\n");
+    return;
+  }
+
+  bool valid_dims =
+      validate_vertical_dimension(mat->vertical, start_row, end_row);
+  if (col_position < 0 || col_position >= mat->horizontal || !valid_dims) {
+    printf("draw_vertical_line: Invalid dimensions detected.\n");
+    return;
+  }
+
+  for (uint16_t row = start_row; row < end_row; row++) {
+    fill_pixel(color, pt_size, mat, row, col_position);
+  }
+}
+
+void draw_horizontal_line(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                          uint16_t row, uint16_t start_col, uint16_t end_col) {
+  if (mat == NULL) {
+    printf("draw_horizontal_line: mat passed is NULL.\n");
     return;
   }
 
   if (start_col == end_col) {
-    write_rgb565_pixel_code(color, mat, row, start_col);
+    fill_pixel(color, pt_size, mat, row, start_col);
     return;
   }
 
   if (start_col > end_col) {
-    printf("Starting column is greater than ending column. returning.\n");
+    printf("draw_horizontal_line: Starting column is greater than ending "
+           "column. returning.\n");
     return;
   }
 
-  uint8_t valid_dims =
+  if (row < 0 || row >= mat->vertical) {
+    printf("draw_horizontal_line: row dimension is invalid.\n");
+    return;
+  }
+
+  bool valid_dims =
       validate_horizontal_dimension(mat->horizontal, start_col, end_col);
 
   if (!valid_dims) {
@@ -290,6 +325,12 @@ void draw_rectangle(uint16_t color, uint16_t pt_size, struct matrix *mat,
   // Check if coordinates are within bounds.
   uint8_t valid_dims = validate_points_fall_in_bounds(
       mat->horizontal, mat->vertical, start_x, start_y, end_x, end_y);
+
+  draw_horizontal_line(color, pt_size, mat, start_y, start_x, end_x);
+  draw_horizontal_line(color, pt_size, mat, end_y, start_x, end_x);
+
+  draw_vertical_line(color, pt_size, mat, start_x, start_y, end_y);
+  draw_vertical_line(color, pt_size, mat, end_x, start_y, end_y);
 
   if (valid_dims) {
     printf("draw_rectangle: Invalid dimension found, returning.\n");

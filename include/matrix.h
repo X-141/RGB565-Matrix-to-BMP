@@ -102,9 +102,9 @@ enum mat_fn_status write_rgb565_pixel_code(uint16_t color, struct matrix *mat,
 /// <param name="x_position">Column position to draw line</param>
 /// <param name="start_y">Starting row position</param>
 /// <param name="end_y">Ending row position</param>
-void draw_perfect_vertical_line(uint16_t color, uint16_t pt_size,
-                                struct matrix *mat, uint16_t x_position,
-                                uint16_t start_y, uint16_t end_y);
+void draw_vertical_line(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                        uint16_t col_position, uint16_t start_row,
+                        uint16_t end_row);
 
 /// <summary>
 /// Given a y position (row), draw a straight line from start_x to end_x
@@ -115,9 +115,9 @@ void draw_perfect_vertical_line(uint16_t color, uint16_t pt_size,
 /// <param name="y_position">Row position to draw line</param>
 /// <param name="start_x">Starting column position</param>
 /// <param name="end_x">Ending colujmn position</param>
-void draw_perfect_horizontal_line(uint16_t color, uint16_t pt_size,
-                                  struct matrix *mat, uint16_t y_position,
-                                  uint16_t start_x, uint16_t end_x);
+void draw_horizontal_line(uint16_t color, uint16_t pt_size, struct matrix *mat,
+                          uint16_t y_position, uint16_t start_x,
+                          uint16_t end_x);
 
 /// <summary>
 /// Draw rectangle starting from one corner (start_x, start_y) to opposite
