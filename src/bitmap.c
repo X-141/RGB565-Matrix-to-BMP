@@ -70,7 +70,7 @@ struct BMPInfoHeader *allocate_bmpinfoheader() {
   }
 
   uint32_t *header_size = (uint32_t *)ptr->header_size;
-  *header_size = 0x00000028;
+  *header_size = 0x0000007C;
 
   int32_t *width = (int32_t *)ptr->width;
   *width = 0x00000000;
@@ -85,7 +85,7 @@ struct BMPInfoHeader *allocate_bmpinfoheader() {
   *bit_count = 0x0010;
 
   uint32_t *compression = (uint32_t *)ptr->compression;
-  *compression = 0x00000000;
+  *compression = 0x00000003;
 
   uint32_t *size_image = (uint32_t *)ptr->size_image;
   *size_image = 0x00000000;
@@ -143,16 +143,21 @@ struct BMPColorHeader *allocate_bmpcolorheader() {
   }
 
   uint32_t *red_mask = (uint32_t *)ptr->red_mask;
-  *red_mask = 0x000000F8; // Written to file as F800 0000
+  //*red_mask = 0xF8000000; // Written to file as F800 0000
+  *red_mask = 0x0000f800; // Written to file as F800 0000
 
   uint32_t *green_mask = (uint32_t *)ptr->green_mask;
-  *green_mask = 0x0000E007; // Written to file as 07E0 0000
+  *green_mask = 0x000007E0; // Written to file as 07E0 0000
 
   uint32_t *blue_mask = (uint32_t *)ptr->blue_mask;
-  *blue_mask = 0x00001F00; // Written to file as 001F 0000
+  *blue_mask = 0x0000001F; // Written to file as 001F 0000
 
   uint32_t *alpha_mask = (uint32_t *)ptr->alpha_mask;
   *alpha_mask = 0x00000000;
+
+  //uint32_t* color_space_type = (uint32_t*)ptr->color_space_type;
+  //*color_space_type = 0x;
+
 
   for (uint8_t index = 0; index < 68; index++) {
     ptr->unused[index] = 0x00;
