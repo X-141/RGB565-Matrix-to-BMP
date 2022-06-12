@@ -99,9 +99,9 @@ enum mat_fn_status write_rgb565_pixel_code(uint16_t color, struct matrix *mat,
 /// <param name="color">Color of the line</param>
 /// <param name="pt_size">Size of the line</param>
 /// <param name="mat">Pointer to matrix structure</param>
-/// <param name="x_position">Column position to draw line</param>
-/// <param name="start_y">Starting row position</param>
-/// <param name="end_y">Ending row position</param>
+/// <param name="col_position">Column position to draw line</param>
+/// <param name="start_row">Starting row position</param>
+/// <param name="end_row">Ending row position</param>
 void draw_vertical_line(uint16_t color, uint16_t pt_size, struct matrix *mat,
                         uint16_t col_position, uint16_t start_row,
                         uint16_t end_row);
