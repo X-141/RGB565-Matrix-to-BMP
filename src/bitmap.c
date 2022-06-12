@@ -143,21 +143,16 @@ struct BMPColorHeader *allocate_bmpcolorheader() {
   }
 
   uint32_t *red_mask = (uint32_t *)ptr->red_mask;
-  //*red_mask = 0xF8000000; // Written to file as F800 0000
-  *red_mask = 0x0000f800; // Written to file as F800 0000
+  *red_mask = 0x0000f800; // Written to file as 00F8 0000
 
   uint32_t *green_mask = (uint32_t *)ptr->green_mask;
-  *green_mask = 0x000007E0; // Written to file as 07E0 0000
+  *green_mask = 0x000007E0; // Written to file as E007 0000
 
   uint32_t *blue_mask = (uint32_t *)ptr->blue_mask;
-  *blue_mask = 0x0000001F; // Written to file as 001F 0000
+  *blue_mask = 0x0000001F; // Written to file as 1F00 0000
 
   uint32_t *alpha_mask = (uint32_t *)ptr->alpha_mask;
   *alpha_mask = 0x00000000;
-
-  //uint32_t* color_space_type = (uint32_t*)ptr->color_space_type;
-  //*color_space_type = 0x;
-
 
   for (uint8_t index = 0; index < 68; index++) {
     ptr->unused[index] = 0x00;
