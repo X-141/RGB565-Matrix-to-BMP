@@ -10,11 +10,13 @@
 #define BMP_INFO_HEADER_SIZE (uint8_t)(40) // 40 bytes long
 #define BMP_COLR_HEADER_SIZE (uint8_t)(84) // 84 bytes long
 
-struct BMPFileHeader *allocate_bmpfileheader() {
+struct BMPFileHeader *allocate_bmpfileheader()
+{
   struct BMPFileHeader *ptr =
       (struct BMPFileHeader *)malloc(sizeof(struct BMPFileHeader));
 
-  if (ptr == NULL) {
+  if (ptr == NULL)
+  {
     printf("allocate_bmpfileheader: Failed to allocate BMPFileHeader.\n");
     return NULL;
   }
@@ -37,20 +39,24 @@ struct BMPFileHeader *allocate_bmpfileheader() {
   return ptr;
 }
 
-void deallocate_bmpfileheader(struct BMPFileHeader *bmpFileHeaderPtr) {
+void deallocate_bmpfileheader(struct BMPFileHeader *bmpFileHeaderPtr)
+{
   if (bmpFileHeaderPtr == NULL)
     return;
   free(bmpFileHeaderPtr);
 }
 
 void set_bmpfileheader_filesize(const struct matrix *mat,
-                                struct BMPFileHeader *bmpFileHeaderPtr) {
-  if (mat == NULL) {
+                                struct BMPFileHeader *bmpFileHeaderPtr)
+{
+  if (mat == NULL)
+  {
     printf("set_bmpfilesize: mat passed in is NULL.\n");
     return;
   }
 
-  if (bmpFileHeaderPtr == NULL) {
+  if (bmpFileHeaderPtr == NULL)
+  {
     printf("set_bmpfilesize: bmpFileHeader passed in is NULL.\n");
     return;
   }
@@ -60,11 +66,13 @@ void set_bmpfileheader_filesize(const struct matrix *mat,
                BMP_COLR_HEADER_SIZE + (mat->horizontal * mat->vertical);
 }
 
-struct BMPInfoHeader *allocate_bmpinfoheader() {
+struct BMPInfoHeader *allocate_bmpinfoheader()
+{
   struct BMPInfoHeader *ptr =
       (struct BMPInfoHeader *)malloc(sizeof(struct BMPInfoHeader));
 
-  if (ptr == NULL) {
+  if (ptr == NULL)
+  {
     printf("allocate_bmpinfoheader: Failed to allocate BMPInfoHeader.\n");
     return NULL;
   }
@@ -105,20 +113,24 @@ struct BMPInfoHeader *allocate_bmpinfoheader() {
   return ptr;
 }
 
-void deallocate_bmpinfoheader(struct BMPInfoHeader *bmpInfoHeaderPtr) {
+void deallocate_bmpinfoheader(struct BMPInfoHeader *bmpInfoHeaderPtr)
+{
   if (bmpInfoHeaderPtr == NULL)
     return;
   free(bmpInfoHeaderPtr);
 }
 
 void set_bmpinfoheader_dimensions(const struct matrix *mat,
-                                  struct BMPInfoHeader *bmpInfoHeaderPtr) {
-  if (mat == NULL) {
+                                  struct BMPInfoHeader *bmpInfoHeaderPtr)
+{
+  if (mat == NULL)
+  {
     printf("set_bmp_width_height: mat passed in is NULL.\n");
     return;
   }
 
-  if (bmpInfoHeaderPtr == NULL) {
+  if (bmpInfoHeaderPtr == NULL)
+  {
     printf("set_bmp_width_height: bmpInfoHeaderPtr passed in is NULL.\n");
     return;
   }
@@ -133,11 +145,13 @@ void set_bmpinfoheader_dimensions(const struct matrix *mat,
   *image_size = mat->horizontal * mat->vertical;
 }
 
-struct BMPColorHeader *allocate_bmpcolorheader() {
+struct BMPColorHeader *allocate_bmpcolorheader()
+{
   struct BMPColorHeader *ptr =
       (struct BMPColorHeader *)malloc(sizeof(struct BMPColorHeader));
 
-  if (ptr == NULL) {
+  if (ptr == NULL)
+  {
     printf("Unable to allocate BMPColorHeader.\n");
     return NULL;
   }
@@ -154,21 +168,25 @@ struct BMPColorHeader *allocate_bmpcolorheader() {
   uint32_t *alpha_mask = (uint32_t *)ptr->alpha_mask;
   *alpha_mask = 0x00000000;
 
-  for (uint8_t index = 0; index < 68; index++) {
+  for (uint8_t index = 0; index < 68; index++)
+  {
     ptr->unused[index] = 0x00;
   }
 
   return ptr;
 }
 
-void deallocate_bmpcolorheader(struct BMPColorHeader *bmpColorHeaderPtr) {
+void deallocate_bmpcolorheader(struct BMPColorHeader *bmpColorHeaderPtr)
+{
   if (bmpColorHeaderPtr == NULL)
     return;
   free(bmpColorHeaderPtr);
 }
 
-uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat) {
-  if (mat == NULL) {
+uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat)
+{
+  if (mat == NULL)
+  {
     printf("Unable to write BMP file, passed in mat parameter is NULL.\n");
     return 1;
   }
@@ -178,19 +196,22 @@ uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat) {
   struct BMPInfoHeader *info_ptr = allocate_bmpinfoheader();
   struct BMPColorHeader *color_ptr = allocate_bmpcolorheader();
 
-  if (header_ptr == NULL) {
+  if (header_ptr == NULL)
+  {
     printf("Unable to allocate BMPFileHeader.\n");
     ret = 1;
     goto cleanup;
   }
 
-  if (info_ptr == NULL) {
+  if (info_ptr == NULL)
+  {
     printf("Unable to allocate BMPInfoHeader.\n");
     ret = 2;
     goto cleanup;
   }
 
-  if (color_ptr == NULL) {
+  if (color_ptr == NULL)
+  {
     printf("Unable to allocate BMPColorHeader.\n");
     ret = 3;
     goto cleanup;
@@ -198,9 +219,9 @@ uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat) {
 
   set_bmpfileheader_filesize(mat, header_ptr);
   set_bmpinfoheader_dimensions(mat, info_ptr);
-  FILE *fileptr = NULL;
-  errno_t err = fopen_s(&fileptr, filepath, "wb");
-  if (err != 0) {
+  FILE *fileptr = fopen(filepath, "wb");
+  if (fileptr == NULL)
+  {
     printf("Unable to open %s for binary writing.\n", filepath);
     ret = 4;
     goto cleanup;
@@ -212,11 +233,13 @@ uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat) {
 
   uint16_t padding = 0x0000;
   bool toggle_padding = ((mat->horizontal % 2) == 0) ? false : true;
-  for (int32_t row = (mat->vertical - 1); row >= 0; row--) {
-    for (int32_t col = 0; col < mat->horizontal; col++) {
+  for (int32_t row = (mat->vertical - 1); row >= 0; row--)
+  {
+    for (int32_t col = 0; col < mat->horizontal; col++)
+    {
       // uint32_t offset = calculate_offset(row, col, mat);
       // printf("offset: %d.\n", offset);
-      fwrite((mat->mem + calculate_offset(row, col, mat)), sizeof(uint16_t), 1,
+      fwrite((mat->mem + calculate_offset(mat, row, col)), sizeof(uint16_t), 1,
              fileptr);
     }
     if (toggle_padding)
