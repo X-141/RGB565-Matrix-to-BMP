@@ -3,10 +3,10 @@
 
 #include "matrix.h"
 
-/// <summary>
-/// General information for the image processor to help it understand how to
-/// begin reading our BMP file
-/// </summary>
+/**
+ * @brief General information for the image processor to help it understand how to 
+ * begin reading our BMP file.
+ */
 struct BMPFileHeader {
   uint8_t file_type[2];
   uint8_t file_size[4];
@@ -15,31 +15,34 @@ struct BMPFileHeader {
   uint8_t offset_data[4];
 };
 
-/// <summary>
-/// Allocate a new BMP file header for BMP file generation
-/// </summary>
-/// <returns>A pointer to a newly created BMP file header. NULL
-/// otherwise</returns>
+/**
+ * @brief Allocate a new BMP file header for BMP file generation. If 
+ * allocation fails. NULL will be returned;
+ * 
+ * @return struct BMPFileHeader* 
+ */
 struct BMPFileHeader *allocate_bmpfileheader();
 
-/// <summary>
-/// Deallocate existing BMP file header structure.
-/// </summary>
-/// <param name="bmpFileHeaderPtr"></param>
+/**
+ * @brief Deallocate existing BMP file header structure.
+ * 
+ * @param bmpFileHeaderPtr Pointer to an existing Bitmap File Header.
+ */
 void deallocate_bmpfileheader(struct BMPFileHeader *bmpFileHeaderPtr);
 
-/// <summary>
-/// Set the filesize field in the File header structure.
-/// </summary>
-/// <param name="mat">Pointer to existing Matrix structure</param>
-/// <param name="bmpFileHeaderPtr">Pointer to existing File Header</param>
+/**
+ * @brief Sets the filesize field of the Bitmap Filesize header.
+ * 
+ * @param mat Pointer to existing Matrix structure
+ * @param bmpFileHeaderPtr Pointer to existing File Header
+ */
 void set_bmpfileheader_filesize(const struct matrix *mat,
                                 struct BMPFileHeader *bmpFileHeaderPtr);
 
-/// <summary>
-/// Structure to represent the context of the image (what exactly are the
-/// dimensions, size, how many bits per pixel, etc).
-/// </summary>
+/**
+ * @brief Structure to represent the context of the image (what exactly are the
+ * dimensions, size, how many bits per pixel, etc).
+ */
 struct BMPInfoHeader {
   uint8_t header_size[4];
 
@@ -59,31 +62,34 @@ struct BMPInfoHeader {
   uint8_t colors_important[4];
 };
 
-/// <summary>
-/// Allocate a new BMP info header for file generation.
-/// </summary>
-/// <returns>Pointer to newly allocated BMP info header. NULL
-/// otherwise.</returns>
+/**
+ * @brief Allocate a new BMP info header for file generation.
+ * 
+ * Returns pointer to Bitmap Info header. If allocation fails, NULL will be returned.
+ * 
+ * @return struct BMPInfoHeader* 
+ */
 struct BMPInfoHeader *allocate_bmpinfoheader();
 
-/// <summary>
-/// Deallocate existing info header stucture
-/// </summary>
-/// <param name="bmpInfoHeaderPtr">Pointer to existing BMP info header.</param>
+/**
+ * @brief Deallocate existing info header stucture.
+ * 
+ * @param bmpInfoHeaderPtr Pointer to existing BMP info header.
+ */
 void deallocate_bmpinfoheader(struct BMPInfoHeader *bmpInfoHeaderPtr);
 
-/// <summary>
-/// Set the fields in the info header to specify the dimensions of the matrix.
-/// </summary>
-/// <param name="mat">Pointer to existing matrix structure</param>
-/// <param name="bmpInfoHeaderPtr">Pointer to existing info header</param>
+/**
+ * @brief Set the fields in the info header to specify the dimensions of the matrix.
+ * 
+ * @param mat Pointer to existing matrix structure
+ * @param bmpInfoHeaderPtr Pointer to existing info header
+ */
 void set_bmpinfoheader_dimensions(const struct matrix *mat,
                                   struct BMPInfoHeader *bmpInfoHeaderPtr);
 
-/// <summary>
-/// Header stucture that informs the image processor how to read in the pixel
-/// data.
-/// </summary>
+/**
+ * @brief Header stucture that informs the image processor how to read in the pixel data.
+ */
 struct BMPColorHeader {
   uint8_t red_mask[4];
   uint8_t green_mask[4];
@@ -93,27 +99,33 @@ struct BMPColorHeader {
   uint8_t unused[68];
 };
 
-/// <summary>
-/// Allocate a new BMP color header for file generation
-/// </summary>
-/// <returns>Returns pointer to newly allocated BMPColorHeader on success. NULL
-/// otherwise.</returns
+/**
+ * @brief Allocate a new BMP color header for file generation.
+ * 
+ * Return pointer to Bitmap Color Header. If allocation fails, NULL will be returned.
+ * 
+ * @return struct BMPColorHeader* 
+ */
 struct BMPColorHeader *allocate_bmpcolorheader();
 
-/// <summary>
-/// Deallocate bmp color header
-/// </summary>
-/// <param name="bmpColorHeaderPtr">Pointer to an existing BMP color header
-/// struct</param>
+/**
+ * @brief Deallocate bmp color header.
+ * 
+ * @param bmpColorHeaderPtr Pointer to an existing BMP color header
+ */
 void deallocate_bmpcolorheader(struct BMPColorHeader *bmpColorHeaderPtr);
 
-/// <summary>
-/// Given a matrix containing arbitrary dimensions and data, write the data out
-/// to a to-be created BMP file.
-/// </summary>
-/// <param name="filepath">Destination file to write BMP data to.</param>
-/// <param name="mat">Matrix used as source data to write out.</param>
-/// <returns>Status code of function execution. Non-zero on failure.</returns>
+/**
+ * @brief Given a matrix containing arbitrary dimensions and data, write the data out 
+ * to a to-be created BMP file.
+ * 
+ * @param filepath Destination file to write BMP data to.
+ * @param mat Matrix used as source data to write out.
+ * 
+ * Returns 0 on success. Non-zero otherwize.
+ * 
+ * @return uint8_t 
+ */
 uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat);
 
 #endif
