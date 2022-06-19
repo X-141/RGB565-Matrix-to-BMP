@@ -13,7 +13,7 @@ The total length of the File Header is 14 bytes.
 | reserved 2 | 2 unsigned bytes | Unused. Zero'd typically |
 | offset data | 4 unsigned bytes | Starting point of the actual image data we want the processor to display. In this repo, its always set to ***0x0000008A*** <sub>2</sub>
 
- 1. Generally speaking the equation is always going to be the following: (14 + 40 + 84 + (length * width * channel)).
+ 1. Generally speaking the equation is always going to be the following: (14 + 40 + 84 + (horizontal * vertical)). However, Depending on the length of the horizontal dimension, the formula is different. If the horizontal dimension is odd, the formula is (14 + 40 + 84 + (horizontal + 2) * width)
  2. If you've read the documentation a couple times, you've likely noticed ***0x0000008A*** is just (14 + 40 + 84) in hexadecimal!
 
 ## BMP INFO HEADER
@@ -22,12 +22,12 @@ The BMP info header contains a variety of information. Some are easier to unders
 The total length of the Info Header is 40 bytes.
 | Field | Length (bytes) | Notes |
 | -- | -- | -- |
-| Header Size | 4 unsigned bytes | Length of the header. Set as ***0x00000028*** (40 in decimal) |
+| Header Size | 4 unsigned bytes | Length of this header + the color header. Set as ***0x0000007C*** (124 in decimal) |
 | Width | 4 signed bytes | Width of the image we are storing |
 | Height | 4 signed bytes | Height of the image we are storing |
 | Planes | 2 unsigned bytes | Number of color planes. Set as ***0x0001*** |
 | Bit Count | 2 unsigned bytes | Number of bits per pixel. Set as ***0x0010*** (16 bits per pixel) |
-| Compression | 4 unsigned bytes | Compression method used. Not used in this repo. Set as ***0x00000000***
+| Compression | 4 unsigned bytes | Compression method used. For 16-bit images its used. Set as ***0x00000003***
 | Image Size | 4 unsigned bytes | Size of the raw image. (length * width * channel) |
 | X Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00000000*** |
 | Y Pixels Per Meter | 4 unsigned bytes | Pixels per meter. Set as ***0x00000000*** |
@@ -42,9 +42,9 @@ Because we are using the RGB565 format, that means each pixel needs to be 16 bit
 The total length of the Color Header is 84 bytes.
 | Field | Length (bytes) | Notes |
 | -- | -- | -- |
-| Red Mask | 4 unsigned bytes | Which set of bits represent the color red. Set as ***0x000000F8*** <sub>1</sub>
-| Green Mask | 4 unsigned bytes | Which set of bits represent the color green. Set as ***0x0000E007*** <sub>2</sub>
-| Blue Mask | 4 unsigned bytes | Which set of bits represent the color blue. Set as ***0x00001F00*** <sub>3</sub>
+| Red Mask | 4 unsigned bytes | Which set of bits represent the color red. Set as ***0x0000f800*** <sub>1</sub>
+| Green Mask | 4 unsigned bytes | Which set of bits represent the color green. Set as ***0x000007E0*** <sub>2</sub>
+| Blue Mask | 4 unsigned bytes | Which set of bits represent the color blue. Set as ***0x0000001F*** <sub>3</sub>
 | Alpha Mask | 4 unsigned bytes | Which set of bits represent transparenct. Not used. Set as ***0x00000000***
 | Unused | 68 unsigned bytes | Unused space in the color header. All set to ***0x00***.
 
@@ -52,82 +52,14 @@ The total length of the Color Header is 84 bytes.
  2. The subsequent 6 bits represent the color green:    0000011111100000
  3. The last 5 bits represent the color blue:           0000000000011111
 
-## STORING PIXELS
-Alright, time for a bit of mind bending bit conjigguring. Keep in mind we have the following masking requirement:
- 1. Red: 1111100000000000
- 2. Green: 0000011111100000
- 3. Blue: 0000000000011111
+## Pixel Storage
+Storing pixels is a fairly straight forward process within the context of this repo. However, there are two ground rules:
+ 1. The pixels are stored from bottom-up left-right.
+ 2. If the horizontal dimension is odd, we need add 2 additional bytes to the array before iterating to the next row.
 
-This is extremely important as having a slight misunderstanding will produce a inaccurate image. Rather than spew a whole bunch of rules, instructions, and nuances at you... lets do things by example!
+Thankfully, there is not much else to detail about this process. 
 
-In this repo, we allow the user to write out a RGB565 pixel value into a matrix structure. To make this easier for ourselves, lets say that the user wrote a RGB565 value of 0xFFFF. When stored in the matrix, we do some masking to ensure that the 0xFFFF is converted correctly. Here's a table to help visualize the masking. Ill be using binary as its easier to see.
-
-Our input value:
-| Input (Hex) | Input (Binary |
-| -- | -- |
-| 0xFFFF | 1111111111111111 |
-
-Red pixel value in Matrix (unsigned byte)
-| Input | Shifting | Shifting Result | Masking | Masking Result | Value |
-| -- | -- | -- | -- | -- | -- |
-| 1111111111111111 | (INPUT >> 11) | 0000000000011111 | (INPUT & 0000000000011111) | 0000000000011111 | 0000000000011111
-
-Green pixel value in Matrix (unsigned byte)
-| Input | Shifting | Shifting Result | Masking | Masking Result | Value |
-| -- | -- | -- | -- | -- | -- |
-| 1111111111111111 | (INPUT >> 5) | 0000011111111111 | (INPUT & 0000000000111111) | 0000000000111111 | 0000000000111111
-
-
-Blue pixel value in Matrix (unsigned byte)
-| Input | Shifting | Shifting Result | Masking | Masking Result | Value |
-| -- | -- | -- | -- | -- | -- |
-| 1111111111111111 | INPUT | 1111111111111111 | (INPUT & 0000000000011111) | 0000000000011111 | 0000000000011111
-
-The result is that we now have a pixel in the matrix that represents the three colors in the correct RGB565 requirement. Red and blue can only have at most 5 bits, and green can have at most 6 bits.
-
-Now that we have our pixel data, we can go ahead and begin writing them to a file to generate a BMP. To do that we first write out our header data in this order: File Header, Info Header, and Color Table.
-
-Now that we have written out some preliminary data, we can start writing out the actual pixel data. There's a couple ground rules you should know about when writing pixel data:
-
- * Pixels are written out from bottom up, left to right.
- * Each row is a multiple of 4 bytes.
-
-When writing out the actual pixel value, since we indicated that each pixel is 16 bits long, it is expected that we take each our channels (red, blue, and green) and fit it within that 16 bit range. As was mentioned previously, we have the masking values:
- 1. Red: 1111100000000000
- 2. Green: 0000011111100000
- 3. Blue: 0000000000011111
-
-So as long as we shift and merge in our bits correctly, we will be within the 16 bit spec.
-
-Now going over the point about *Each row is a multiple of 4*. That does require a little bit of explaination. As we are iteration from bottom-up-left-right, each row we write has to be padded if the horizontal dimension is odd. 
-
-So if we write out a 1x1 bitmap, we have the following stored (written) byte data (assuming color set is 0x0000)
-
-[ 00000000 00000000 ]
-
-Unfortunately, this would not satisfy our 2nd rule for bitmaps. We need to pad the data such that there is 2 more bytes written (such that the total bytes in that row is a multiple of 4)
-
-[ 00000000 00000000 00000000 00000000 ]
-
-Another example. If we had a image with dimensions 3x4 we have the bitmap, here is what the stored data would look like without the required padding. (Now if we wanted to be accurate, the matrix below would be all in a single row, but this is just for clarity sake)
-
-[   00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000
-]
-
-Notice that each row is only six bytes long! This is not satisfactory. Obviously we need to add two more bytes in order to actually have the correct format. But how do we know at runtime for various unknown dimensions how many bytes we need to add for padding?
-
-Currently no computational formula is used, with a bit of trickery (plugging in horizontal values and seeing a pattern). If the horizontal dimension is odd, the number of bytes needed for padding will always be two. If the horizontal dimension is even, no padding is required.
-
-So since the horizontal dimension is odd, we add two more bytes to have the correct stored data.
-
-[   00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-    00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-]
+**Side Note:** In older forms of this repository, a lot of work was required to convert the matrix into a 16 bit value. This was due to the color values being stored in seperate channels. However, I've since shrunk the complexity to instead store color data in the correct format in a 16 bit value.
 
 ### Citations
 Always gotta cite your sources!
