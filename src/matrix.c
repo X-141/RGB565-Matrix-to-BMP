@@ -11,6 +11,10 @@
 #define GREEN_PIXEL_MASK (uint8_t)(0x3F)
 #define BLUE_PIXEL_MASK (uint8_t)(0x1F)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 mat_fn_status zero_matrix(matrix *mat)
 {
   if (!mat)
@@ -450,3 +454,7 @@ mat_fn_status read_binary_file(matrix *mat, const char *filepath)
 
   return status;
 }
+
+#ifdef __cplusplus
+}
+#endif

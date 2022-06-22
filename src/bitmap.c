@@ -10,6 +10,11 @@
 #define BMP_INFO_HEADER_SIZE (uint8_t)(40) // 40 bytes long
 #define BMP_COLR_HEADER_SIZE (uint8_t)(84) // 84 bytes long
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 BMPFileHeader *allocate_bmpfileheader()
 {
   BMPFileHeader *ptr =
@@ -258,3 +263,7 @@ cleanup:
 
   return ret;
 }
+
+#ifdef __cplusplus
+}
+#endif
