@@ -3,6 +3,10 @@
 
 #include "matrix.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief General information for the image processor to help it understand how to 
  * begin reading our BMP file.
@@ -127,5 +131,9 @@ void deallocate_bmpcolorheader(BMPColorHeader *bmpColorHeaderPtr);
  * @return uint8_t 
  */
 uint8_t write_rgb565_bmpfile(const char *filepath, struct matrix *mat);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

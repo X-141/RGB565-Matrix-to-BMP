@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Enumeration of possible function status messages.
  */
@@ -183,5 +187,9 @@ mat_fn_status draw_rectangle(matrix *mat, uint16_t color, uint16_t pt_size,
  * @return bool
  */
 mat_fn_status read_binary_file(matrix *mat, const char *filepath);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
