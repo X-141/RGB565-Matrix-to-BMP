@@ -2,7 +2,6 @@
 #define MATRIX_H
 
 #include <stdint.h>
-#include <stdbool.h>
 
 /**
  * @brief Enumeration of possible function status messages.
@@ -148,9 +147,9 @@ mat_fn_status draw_vertical_line(matrix *mat, uint16_t color, uint16_t pt_size,
 /**
  * @brief Given a y position (row), draw a straight line from start_x to end_x.
  *
+ * @param mat Pointer to matrix structure.
  * @param color Color of the line.
  * @param pt_size Size of the line.
- * @param mat Pointer to matrix structure.
  * @param y_position Row position to draw line.
  * @param start_x Starting column position.
  * @param end_x Ending column position.
@@ -162,9 +161,9 @@ mat_fn_status draw_horizontal_line(matrix *mat, uint16_t color, uint16_t pt_size
 /**
  * @brief Draw rectangle starting from one corner (start_x, start_y) to opposite corner (end_x, end_y)
  *
+ * @param mat Pointer to matrix structure.
  * @param color Color of the rectangle.
  * @param pt_size Size of the lines.
- * @param mat Pointer to matrix structure.
  * @param start_x X position of initial corner.
  * @param start_y Y position of initial corner.
  * @param end_x X position of opposite corner.
@@ -179,8 +178,8 @@ mat_fn_status draw_rectangle(matrix *mat, uint16_t color, uint16_t pt_size,
  *
  * Returns boolean to indicate success.
  *
- * @param filepath Filepath to an existing file containing raw data.
  * @param mat Pointer to matrix structure. Ideally should be intialized to contain only zero's
+ * @param filepath Filepath to an existing file containing raw data.
  * @return bool
  */
 mat_fn_status read_binary_file(matrix *mat, const char *filepath);
