@@ -11,18 +11,18 @@
 #define GREEN_PIXEL_MASK (uint8_t)(0x3F)
 #define BLUE_PIXEL_MASK (uint8_t)(0x1F)
 
-enum mat_fn_status zero_matrix(struct matrix *mat)
+mat_fn_status zero_matrix(matrix *mat)
 {
   if (!mat)
   {
     printf("zero_matrix: data_ptr is NULL.\n");
-    return NULL_MAT;
+    return INVALID_PARAM;
   }
 
   if (!(mat->mem))
   {
     printf("zero_matrix: data_ptr underlying data is NULL.\n");
-    return NULL_MAT_MEMORY;
+    return INVALID_PARAM;
   }
 
   uint16_t *mem = mat->mem;
@@ -61,9 +61,8 @@ struct matrix *allocate_matrix(uint16_t horizontal_dim, uint16_t vertical_dim)
   return mat;
 }
 
-enum mat_fn_status deallocate_matrix(struct matrix *mat)
+mat_fn_status deallocate_matrix(matrix *mat)
 {
-
   if (mat != NULL && mat->mem)
   {
     free(mat->mem);
@@ -74,15 +73,15 @@ enum mat_fn_status deallocate_matrix(struct matrix *mat)
     free(mat);
     return VALID_OP;
   }
-  return NULL_MAT;
+  return INVALID_PARAM;
 }
 
-enum mat_fn_status print_matrix(struct matrix *mat)
+mat_fn_status print_matrix(matrix *mat)
 {
   if (mat == NULL)
   {
     printf("print_matrix: mat passed is NULL.\n");
-    return NULL_MAT;
+    return INVALID_PARAM;
   }
 
   uint16_t x_row, y_column, offset;
@@ -102,30 +101,30 @@ enum mat_fn_status print_matrix(struct matrix *mat)
   return VALID_OP;
 }
 
-uint32_t calculate_offset(struct matrix *mat, uint16_t row, uint16_t column)
+uint32_t calculate_offset(matrix *mat, uint16_t row, uint16_t column)
 {
   return (uint32_t)(row * mat->horizontal + column);
 }
 
-enum mat_fn_status write_rgb565_pixel_rgb(struct matrix *mat, uint8_t red, uint8_t green, uint8_t blue,
-                                          uint16_t row, uint16_t column)
+mat_fn_status write_rgb565_pixel_rgb(matrix *mat, uint8_t red, uint8_t green, uint8_t blue,
+                                     uint16_t row, uint16_t column)
 {
   if (mat == NULL)
   {
     printf("write_rgb565_pixel: mat passed is NULL.\n");
-    return NULL_MAT;
+    return INVALID_PARAM;
   }
 
   if (row < 0 || row >= mat->vertical)
   {
     printf("write_rgb565_pixel: row parameters is invalid.\n");
-    return INVALID_DIMENSION;
+    return INVALID_PARAM;
   }
 
   if (column < 0 || column >= mat->horizontal)
   {
     printf("write_rgb565_pixel: column parameters is invalid.\n");
-    return INVALID_DIMENSION;
+    return INVALID_PARAM;
   }
 
   uint16_t *ptr = mat->mem + calculate_offset(mat, row, column);
@@ -138,8 +137,8 @@ enum mat_fn_status write_rgb565_pixel_rgb(struct matrix *mat, uint8_t red, uint8
   return VALID_OP;
 }
 
-enum mat_fn_status write_rgb565_pixel_code(struct matrix *mat, uint16_t color,
-                                           uint16_t row, uint16_t column)
+mat_fn_status write_rgb565_pixel_code(matrix *mat, uint16_t color,
+                                      uint16_t row, uint16_t column)
 {
   if (mat == NULL)
   {
@@ -150,13 +149,13 @@ enum mat_fn_status write_rgb565_pixel_code(struct matrix *mat, uint16_t color,
   if (row < 0 || row >= mat->vertical)
   {
     printf("write_rgb565_pixel: row parameters is invalid.\n");
-    return INVALID_DIMENSION;
+    return INVALID_PARAM;
   }
 
   if (column < 0 || column >= mat->horizontal)
   {
     printf("write_rgb565_pixel: column parameters is invalid.\n");
-    return INVALID_DIMENSION;
+    return INVALID_PARAM;
   }
 
   mat->mem[calculate_offset(mat, row, column)] = color;
@@ -206,14 +205,14 @@ bool static validate_points_fall_in_bounds(uint16_t horizontal_dim,
                                            uint16_t end_x, uint16_t end_y)
 {
 
-  if (validate_horizontal_dimension(horizontal_dim, start_x, end_x))
+  if (!validate_horizontal_dimension(horizontal_dim, start_x, end_x))
   {
     printf("validate_points_fall_in_bounds: horizontal dimensions found to be "
            "invalid.\n");
     return false;
   }
 
-  if (validate_vertical_dimension(vertical_dim, start_y, end_y))
+  if (!validate_vertical_dimension(vertical_dim, start_y, end_y))
   {
     printf("validate_points_fall_in_bounds: vertical dimensions found to be "
            "invalid.\n");
@@ -223,7 +222,7 @@ bool static validate_points_fall_in_bounds(uint16_t horizontal_dim,
   return true;
 }
 
-uint8_t static fill_pixel(struct matrix *mat, uint16_t color, uint16_t pt_size,
+uint8_t static fill_pixel(matrix *mat, uint16_t color, uint16_t pt_size,
                           uint16_t row, uint16_t column)
 {
 
@@ -235,8 +234,8 @@ uint8_t static fill_pixel(struct matrix *mat, uint16_t color, uint16_t pt_size,
   else if (pt_size == 1)
   {
     uint32_t offset = calculate_offset(mat, row, column);
-    printf("Writing 0xFFFF to (%d, %d).\n", column, row);
-    printf("%ul calculate_offset(row, column, mat)offset.\n", offset);
+    // printf("Writing 0xFFFF to (%d, %d).\n", column, row);
+    // printf("%ul calculate_offset(row, column, mat)offset.\n", offset);
     mat->mem[offset] = color;
     return 0;
   }
@@ -286,26 +285,26 @@ uint8_t static fill_pixel(struct matrix *mat, uint16_t color, uint16_t pt_size,
   return 0;
 }
 
-void draw_vertical_line(struct matrix *mat, uint16_t color, uint16_t pt_size,
-                        uint16_t col_position, uint16_t start_row,
-                        uint16_t end_row)
+mat_fn_status draw_vertical_line(matrix *mat, uint16_t color, uint16_t pt_size,
+                                 uint16_t col_position, uint16_t start_row,
+                                 uint16_t end_row)
 {
   if (mat == NULL)
   {
     printf("draw_vertical_line: mat passed is NULL.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   if (start_row == end_row)
   {
     fill_pixel(mat, color, pt_size, start_row, col_position);
-    return;
+    return INVALID_PARAM;
   }
 
   if (start_row > end_row)
   {
     printf("draw_vertical_line: start_row is less than end_row.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   bool valid_dims =
@@ -313,41 +312,43 @@ void draw_vertical_line(struct matrix *mat, uint16_t color, uint16_t pt_size,
   if (col_position < 0 || col_position >= mat->horizontal || !valid_dims)
   {
     printf("draw_vertical_line: Invalid dimensions detected.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   for (uint16_t row = start_row; row < end_row; row++)
   {
     fill_pixel(mat, color, pt_size, row, col_position);
   }
+
+  return VALID_OP;
 }
 
-void draw_horizontal_line(struct matrix *mat, uint16_t color, uint16_t pt_size,
-                          uint16_t row, uint16_t start_col, uint16_t end_col)
+mat_fn_status draw_horizontal_line(matrix *mat, uint16_t color, uint16_t pt_size,
+                                   uint16_t row, uint16_t start_col, uint16_t end_col)
 {
   if (mat == NULL)
   {
     printf("draw_horizontal_line: mat passed is NULL.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   if (start_col == end_col)
   {
     fill_pixel(mat, color, pt_size, row, start_col);
-    return;
+    return INVALID_PARAM;
   }
 
   if (start_col > end_col)
   {
     printf("draw_horizontal_line: Starting column is greater than ending "
            "column. returning.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   if (row < 0 || row >= mat->vertical)
   {
     printf("draw_horizontal_line: row dimension is invalid.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   bool valid_dims =
@@ -357,69 +358,95 @@ void draw_horizontal_line(struct matrix *mat, uint16_t color, uint16_t pt_size,
   {
     printf(
         "draw_perfect_horizontal_line: Invalid dimension found, returning.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   for (uint16_t x = start_col; x <= end_col; x++)
   {
     fill_pixel(mat, color, pt_size, row, x);
   }
+
+  return VALID_OP;
 }
 
-void draw_rectangle(struct matrix *mat, uint16_t color, uint16_t pt_size,
-                    uint16_t start_x, uint16_t start_y, uint16_t end_x,
-                    uint16_t end_y)
+mat_fn_status draw_rectangle(matrix *mat, uint16_t color, uint16_t pt_size,
+                             uint16_t start_x, uint16_t start_y, uint16_t end_x,
+                             uint16_t end_y)
 {
 
   if (mat == NULL)
   {
     printf("draw_rectangle: mat passed is NULL.\n");
-    return;
+    return INVALID_PARAM;
   }
 
   // Check if coordinates are within bounds.
-  uint8_t valid_dims = validate_points_fall_in_bounds(
+  bool valid_dims = validate_points_fall_in_bounds(
       mat->horizontal, mat->vertical, start_x, start_y, end_x, end_y);
 
-  draw_horizontal_line(mat, color, pt_size, start_y, start_x, end_x);
-  draw_horizontal_line(mat, color, pt_size, end_y, start_x, end_x);
-
-  draw_vertical_line(mat, color, pt_size, start_x, start_y, end_y);
-  draw_vertical_line(mat, color, pt_size, end_x, start_y, end_y);
-
-  if (valid_dims)
+  if (!valid_dims)
   {
     printf("draw_rectangle: Invalid dimension found, returning.\n");
-    return;
+    return INVALID_PARAM;
   }
+
+  if(draw_horizontal_line(mat, color, pt_size, start_y, start_x, end_x) != VALID_OP) {
+    printf("draw_rectangle: failed to draw top horizontal line\n");
+    return FAILED_DRAW_OP;
+  }
+
+  if(draw_horizontal_line(mat, color, pt_size, end_y, start_x, end_x) != VALID_OP) {
+    printf("draw_rectangle: failed to draw bottom horizontal line\n");
+    return FAILED_DRAW_OP;
+  }
+
+  if(draw_vertical_line(mat, color, pt_size, start_x, start_y, end_y) != VALID_OP) {
+    printf("draw_rectangle: failed to draw left vertical line\n");
+    return FAILED_DRAW_OP;
+  }
+
+  if(draw_vertical_line(mat, color, pt_size, end_x, start_y, end_y) != VALID_OP) {
+    printf("draw_rectangle: failed to draw right vertical line\n");
+    return FAILED_DRAW_OP;
+  }
+
+  return VALID_OP;
 }
 
-bool read_binary_file(struct matrix *mat, const char *filepath)
+mat_fn_status read_binary_file(matrix *mat, const char *filepath)
 {
-
-  if (filepath == NULL)
-  {
-    return false;
-  }
 
   if (mat == NULL)
   {
-    return false;
+    printf("read_binary_file: mat structure pointer is NULL.\n");
+    return INVALID_PARAM;
+  }
+
+  if (filepath == NULL)
+  {
+    printf("read_binary_file: filepath indicated is NULL.\n");
+    return INVALID_PARAM;
   }
 
   FILE *file_ptr = NULL;
   file_ptr = fopen(filepath, "rb");
-
   if (file_ptr == NULL)
   {
-    return false;
+    printf("read_binary_file: unable to open binary file for reading.\n");
+    return FAILED_BINARY_FILE_READ;
   }
 
-  uint32_t num_read = fread(mat->mem, sizeof(uint16_t), mat->size, file_ptr);
+  size_t num_read = fread(mat->mem, sizeof(uint16_t), mat->size, file_ptr);
 
-  printf("Number of bytes read: %ul.\n", num_read);
+  mat_fn_status status = VALID_OP;
+
+  if (!num_read)
+  {
+    printf("read_binary_file: fread returned zero.\n");
+    status = FAILED_BINARY_FILE_READ;
+  }
 
   fclose(file_ptr);
 
-  return true;
+  return status;
 }
