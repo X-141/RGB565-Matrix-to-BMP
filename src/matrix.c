@@ -40,6 +40,11 @@ mat_fn_status zero_matrix(matrix *mat)
 
 struct matrix *allocate_matrix(uint16_t horizontal_dim, uint16_t vertical_dim)
 {
+  if(horizontal_dim == 0 || vertical_dim == 0) {
+    printf("allocate_matrix: Dimensions passed are invalid.\n");
+    return NULL;
+  }
+
   struct matrix *mat = (struct matrix *)malloc(sizeof(struct matrix));
   if (!mat)
   {
