@@ -8,8 +8,6 @@ file( GLOB SOURCES "src/*.c" "include/*.h" )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long -pedantic")
 
-# set(CMAKE_C_CPPLINT "cpplint")
-
 find_program(CMAKE_C_CPPCHECK NAMES cppcheck)
 if (CMAKE_C_CPPCHECK)
     list(
@@ -22,6 +20,9 @@ if (CMAKE_C_CPPCHECK)
     )
 endif()
 
+option(TEST_MATRIX "Build test executable for Matrix library." ON)
+option(TEST_BITMAP "Build test executable for Bitmap library." ON)
+
 add_executable(matrix ${SOURCES})
 
 IF (NOT WIN32)
@@ -32,3 +33,5 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
 include(CPack)
+
+add_subdirectory("test")
