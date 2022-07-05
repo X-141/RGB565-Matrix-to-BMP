@@ -61,7 +61,7 @@ TEST(MatrixSetupSuite, DeallocateInvalidMatrix)
 {
     mat_fn_status status = deallocate_matrix(NULL);
 
-    ASSERT_EQ(status, INVALID_PARAM);
+    ASSERT_EQ(status, NULL_MAT);
 }
 
 /**
@@ -117,6 +117,10 @@ TEST_P(WriteRGB565RGBDimensionTestFixture, ValidateDimensionRestriction)
     mat_fn_status status = write_rgb565_pixel_rgb(mat, red, green, blue, row, col);
 
     ASSERT_EQ(status, expected_status);
+
+    status = deallocate_matrix(mat);
+
+    ASSERT_EQ(status, VALID_OP);
 }
 
 INSTANTIATE_TEST_CASE_P(WriteToInvalidDimensions, WriteRGB565RGBDimensionTestFixture, testing::Values(
@@ -137,7 +141,7 @@ TEST(RBG565RGBWrite, WriteRGBToInvalidMatrix)
 
     mat_fn_status status = write_rgb565_pixel_rgb(mat, 0xFF, 0xFF, 0xFF, 1, 1);
 
-    ASSERT_EQ(status, INVALID_PARAM);
+    ASSERT_EQ(status, NULL_MAT);
 }
 
 
@@ -185,6 +189,59 @@ INSTANTIATE_TEST_CASE_P(WriteRGB565PixelValue, WriteRgb565RGBPixelValueTestFixtu
     std::make_tuple(0x00, 0xFF, 0x00, 5, 5, 0x07E0),
     std::make_tuple(0x00, 0x00, 0xFF, 5, 5, 0x001F)
 ));
+
+class FillPixelValidateInputsTextFixture : public testing::TestWithParam<std::tuple<matrix*, uint8_t, uint8_t, uint8_t, mat_fn_status, mat_fn_status>> {
+};
+
+TEST_P(FillPixelValidateInputsTextFixture, ValidateFillPixelInputs) {
+    matrix* mat = std::get<0>(GetParam());
+    uint8_t pt_size = std::get<1>(GetParam());
+    uint8_t row = std::get<2>(GetParam());
+    uint8_t col = std::get<3>(GetParam());
+    mat_fn_status expected_status = std::get<4>(GetParam());
+    mat_fn_status expected_deallocation_status = std::get<5>(GetParam());
+
+    std::cout << "\tParameters: \n";
+    std::cout << "\tpoint size: " << pt_size << std::endl;
+    std::cout << "\trow: " << std::hex << row << std::endl;
+    std::cout << "\tcol: " << std::to_string(col) << std::endl;
+    std::cout << "\texpected status: " << expected_status << std::endl;
+    std::cout << "\texpected deallocation status: " << expected_deallocation_status << std::endl;
+
+    mat_fn_status stat = fill_pixel(mat, 0xFFFF, pt_size, row, col);
+
+    ASSERT_EQ(stat, expected_status);
+
+    stat = deallocate_matrix(mat);
+
+    ASSERT_EQ(stat, expected_deallocation_status);
+}
+
+INSTANTIATE_TEST_CASE_P(FillPixelInputValues, FillPixelValidateInputsTextFixture, testing::Values(
+    std::make_tuple(nullptr, 1, 1, 1, NULL_MAT, NULL_MAT),
+    std::make_tuple(allocate_dummy_matrix(), 1, 100, 1, NULL_MAT, NULL_MAT),
+    std::make_tuple(allocate_dummy_matrix(), 1, 1, 100, INVALID_PARAM, VALID_OP),
+    std::make_tuple(allocate_dummy_matrix(), 1, 100, 100, INVALID_PARAM, VALID_OP),
+    std::make_tuple(allocate_dummy_matrix(), 0, 1, 1, INVALID_PARAM, VALID_OP),
+    std::make_tuple(allocate_dummy_matrix(), 1, 1, 1, VALID_OP, VALID_OP),
+    std::make_tuple(allocate_dummy_matrix(), 100, 1, 1, VALID_OP, VALID_OP)
+));
+
+// Vertical line verification is a very interesting to test.
+//  -> Likely we need to do bounds checking first.
+//  -> Then we will need to do sample manual verification that
+//      the data written out is what we expect it to be.    
+
+TEST(DrawVerticalLine, sample) 
+{
+    matrix* mat = allocate_dummy_matrix();
+
+    uint16_t color = 0xFFFF;
+    uint16_t pt_size = 1;
+    uint16_t col = 5;
+    uint16_t start_row = 1;
+    uint16_t end_row = 4;
+}
 
 int main(int argc, char* argv[]) 
 {
