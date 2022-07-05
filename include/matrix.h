@@ -135,6 +135,24 @@ mat_fn_status write_rgb565_pixel_code(matrix *mat, uint16_t color,
                                       uint16_t row, uint16_t column);
 
 /**
+ * @brief At a given (row, column) position, fill pixels in and around
+ * the point according to the pt_size value indicated.
+ * 
+ * The way the pixel is filled is in a rectangular fashion. So if we
+ * have a given position "pos_x, pos_x", the bound for the rectangular fill is:
+ * (pos_x - (pt -1)), (pos_y - (pt - 1)) to (pos_x + (pt - 1)), (pos_y + (pt - 1))
+ * 
+ * @param mat Pointer to matrix structure.
+ * @param color Color of the pixel
+ * @param pt_size Size of the pixel drawn
+ * @param row Position x
+ * @param column Position y
+ * @return uint8_t 
+ */
+mat_fn_status fill_pixel(matrix *mat, uint16_t color, uint16_t pt_size,
+                          uint16_t row, uint16_t column);
+
+/**
  * @brief Given a x position (column), draw a straight line from start_y to end_y.
  *
  * @param mat Pointer to matrix structure.
