@@ -80,11 +80,11 @@ TEST(MatrixSetupSuite, DeallocateValidMatrix)
 }
 
 // Reference: https://www.sandordargo.com/blog/2019/04/24/parameterized-testing-with-gtest
-class WriteRGB565RGBDimensionTestFixture : public testing::TestWithParam<std::tuple<uint8_t, uint8_t, uint8_t, uint16_t, uint16_t, mat_fn_status>>  {
+class WriteRGB565RGBDimensionTestFixture : public testing::TestWithParam<std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint16_t, uint16_t, mat_fn_status>>  {
 };
 
-#define HORIZONTAL_DIM 10
-#define VERTICAL_DIM 10
+constexpr uint8_t HORIZONTAL_DIM = 10;
+constexpr uint8_t  VERTICAL_DIM = 10;
 
 matrix *allocate_dummy_matrix()
 {
@@ -97,24 +97,27 @@ matrix *allocate_dummy_matrix()
  */
 TEST_P(WriteRGB565RGBDimensionTestFixture, ValidateDimensionRestriction) 
 {
-    uint8_t red = std::get<0>(GetParam());
-    uint8_t green = std::get<1>(GetParam());
-    uint8_t blue = std::get<2>(GetParam());
-    uint16_t row = std::get<3>(GetParam());
-    uint16_t col = std::get<4>(GetParam());
-    mat_fn_status expected_status = std::get<5>(GetParam());
+    std::string testCaseTitle;
+    uint8_t red, green, blue;
+    uint16_t row, col;
+    mat_fn_status expected_status;
+    std::tie(testCaseTitle, red, green, blue, row, col, expected_status) = GetParam();
+    //const auto [testCaseTitle, red, green, blue, row, col] = GetParam();
 
+    std::cout << "Test Case: " << testCaseTitle << std::endl;
     std::cout << "\tParameters: \n";
-    std::cout << "\tred: 0x" << std::hex << static_cast<uint16_t>(red) << std::endl;
-    std::cout << "\tgreen: 0x" << std::hex << static_cast<uint16_t>(green) << std::endl;
-    std::cout << "\tblue: 0x" << std::hex << static_cast<uint16_t>(blue) << std::endl;
-    std::cout << "\trow: " << std::hex << row << std::endl;
-    std::cout << "\tcol: " << std::to_string(col) << std::endl;
-    std::cout << "\texpected stat: " << expected_status << "\n";
+    std::cout << "\t\tred: 0x" << std::hex << static_cast<uint16_t>(red) << std::endl;
+    std::cout << "\t\tgreen: 0x" << std::hex << static_cast<uint16_t>(green) << std::endl;
+    std::cout << "\t\tblue: 0x" << std::hex << static_cast<uint16_t>(blue) << std::endl;
+    std::cout << "\t\trow: " << std::hex << row << std::endl;
+    std::cout << "\t\tcol: " << std::to_string(col) << std::endl;
+    std::cout << "\t\texpected stat: " << expected_status << "\n";
 
     matrix* mat = allocate_dummy_matrix();
 
     mat_fn_status status = write_rgb565_pixel_rgb(mat, red, green, blue, row, col);
+
+    std::cout << "result stat: " << status << "\n";
 
     ASSERT_EQ(status, expected_status);
 
@@ -123,15 +126,44 @@ TEST_P(WriteRGB565RGBDimensionTestFixture, ValidateDimensionRestriction)
     ASSERT_EQ(status, VALID_OP);
 }
 
-INSTANTIATE_TEST_CASE_P(WriteToInvalidDimensions, WriteRGB565RGBDimensionTestFixture, testing::Values(
-    std::make_tuple(0x00, 0x00, 0x00, 11, 0x00, INVALID_PARAM),  
-    std::make_tuple(0x00, 0x00, 0x00, 10, 0x00, INVALID_PARAM),
-    std::make_tuple(0x00, 0x00, 0x00,  9, 0x00, VALID_OP),
-    std::make_tuple(0x00, 0x00, 0x00, -1, 0x00, INVALID_PARAM),
-    std::make_tuple(0x00, 0x00, 0x00, 0x00, 11, INVALID_PARAM),
-    std::make_tuple(0x00, 0x00, 0x00, 0x00, 10, INVALID_PARAM),
-    std::make_tuple(0x00, 0x00, 0x00, 0x00,  9, VALID_OP),
-    std::make_tuple(0x00, 0x00, 0x00, 0x00, -1, INVALID_PARAM)
+
+INSTANTIATE_TEST_SUITE_P(WriteToInvalidDimensions, WriteRGB565RGBDimensionTestFixture, testing::Values(
+    std::make_tuple("Accessing Invalid Row Dimension (Vertical Dim + 1) ", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), 0, INVALID_PARAM),
+    std::make_tuple("Accessomg Invalid Row Dimension (Vertical Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM), 0x00, INVALID_PARAM),
+    std::make_tuple("Accessing Valid Row Dimension (Vertical Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), 0x00, VALID_OP),
+    std::make_tuple("Accessing Invalid Row Dimension (Negative Value)", 0x00, 0x00, 0x00, -1, 0x00, INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Column Dimension (Horizontal Dim + 1)", 0x00, 0x00, 0x00, 0x00, (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Column Dimension (Horizontal Dim + 0)", 0x00, 0x00, 0x00, 0x00, (HORIZONTAL_DIM), INVALID_PARAM),
+    std::make_tuple("Accessing Valid Column Dimension (Horizontal Dim - 1)", 0x00, 0x00, 0x00, 0x00, (HORIZONTAL_DIM - 1), VALID_OP),
+    std::make_tuple("Accessing Invalid Column Dimension (Negative Value)", 0x00, 0x00, 0x00, 0x00, -1, INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Valid Row and Horizontal Dimension (Vertical Dim - 1, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM - 1), INVALID_PARAM),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM - 1), INVALID_PARAM),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Valid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim - 1, Horizontal Dim + 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 1), INVALID_PARAM),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim - 1, Horizontal Dim + 0)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 0), INVALID_PARAM),
+
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 1, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 1), (HORIZONTAL_DIM - 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim + 0, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM + 0), (HORIZONTAL_DIM - 1), INVALID_PARAM),
+    std::make_tuple("Accessing Invalid Row and Horizontal Dimension (Vertical Dim - 1, Horizontal Dim - 1)", 0x00, 0x00, 0x00, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP)
+
 ));
 
 
@@ -145,7 +177,7 @@ TEST(RBG565RGBWrite, WriteRGBToInvalidMatrix)
 }
 
 
-class WriteRgb565RGBPixelValueTestFixture : public testing::TestWithParam<std::tuple<uint8_t, uint8_t, uint8_t, uint16_t, uint16_t, uint16_t>>  {
+class WriteRgb565RGBPixelValueTestFixture : public testing::TestWithParam<std::tuple<std::string, uint8_t, uint8_t, uint8_t, uint16_t, uint16_t, uint16_t>>  {
 };
 
 /**
@@ -154,20 +186,19 @@ class WriteRgb565RGBPixelValueTestFixture : public testing::TestWithParam<std::t
  */
 TEST_P(WriteRgb565RGBPixelValueTestFixture, ValidatePixelValue)
 {
-    uint8_t red = std::get<0>(GetParam());
-    uint8_t green = std::get<1>(GetParam());
-    uint8_t blue = std::get<2>(GetParam());
-    uint16_t row = std::get<3>(GetParam());
-    uint16_t col = std::get<4>(GetParam());
-    uint16_t true_color = std::get<5>(GetParam());;
+    std::string testCaseTitle;
+    uint8_t red, green, blue;
+    uint16_t row, col, true_color;
+    std::tie(testCaseTitle, red, green, blue, row, col, true_color) = GetParam();
 
-    std::cout << "\tParameters: \n";
-    std::cout << "\tred: 0x" << std::hex << static_cast<uint16_t>(red) << std::endl;
-    std::cout << "\tgreen: 0x" << std::hex << static_cast<uint16_t>(green) << std::endl;
-    std::cout << "\tblue: 0x" << std::hex << static_cast<uint16_t>(blue) << std::endl;
-    std::cout << "\trow: " << std::hex << row << std::endl;
-    std::cout << "\tcol: " << std::to_string(col) << std::endl;
-    std::cout << "\ttrue color: " << std::hex << true_color << std::endl;
+    std::cout << "Test Case: " << testCaseTitle << std::endl;
+    std::cout << "\t\tParameters: \n";
+    std::cout << "\t\tred: 0x" << std::hex << static_cast<uint16_t>(red) << std::endl;
+    std::cout << "\t\tgreen: 0x" << std::hex << static_cast<uint16_t>(green) << std::endl;
+    std::cout << "\t\tblue: 0x" << std::hex << static_cast<uint16_t>(blue) << std::endl;
+    std::cout << "\t\trow: " << std::hex << row << std::endl;
+    std::cout << "\t\tcol: " << std::to_string(col) << std::endl;
+    std::cout << "\t\ttrue color: 0x" << std::hex << true_color << std::endl;
 
     matrix* mat = allocate_dummy_matrix();
 
@@ -182,31 +213,35 @@ TEST_P(WriteRgb565RGBPixelValueTestFixture, ValidatePixelValue)
     ASSERT_EQ(mat->mem[position], true_color);
 }
 
-INSTANTIATE_TEST_CASE_P(WriteRGB565PixelValue, WriteRgb565RGBPixelValueTestFixture, testing::Values(
-    std::make_tuple(0x00, 0x00, 0x00, 5, 5, 0x0000),
-    std::make_tuple(0xFF, 0xFF, 0xFF, 5, 5, 0xFFFF),
-    std::make_tuple(0xFF, 0x00, 0x00, 5, 5, 0xF800),
-    std::make_tuple(0x00, 0xFF, 0x00, 5, 5, 0x07E0),
-    std::make_tuple(0x00, 0x00, 0xFF, 5, 5, 0x001F)
+INSTANTIATE_TEST_SUITE_P(WriteRGB565PixelValue, WriteRgb565RGBPixelValueTestFixture, testing::Values(
+    std::make_tuple("Validate writing RGB value 0x00 0x00 0x00 equates to 0x0000", 0x00, 0x00, 0x00, 5, 5, 0x0000),
+    std::make_tuple("Validate writing RGB value 0xFF 0xFF 0xFF equates to 0xFFFF", 0xFF, 0xFF, 0xFF, 5, 5, 0xFFFF),
+    std::make_tuple("Validate writing RGB value 0xFF 0x00 0x00 equates to 0xF800 (Red occupies last 5 bits)", 0xFF, 0x00, 0x00, 5, 5, 0xF800),
+    std::make_tuple("Validate writing RGB value 0x00 0xFF 0x00 equates to 0x07E0 (Green occupies middle 6 bits)", 0x00, 0xFF, 0x00, 5, 5, 0x07E0),
+    std::make_tuple("Validate writing RGB value 0x00 0x00 0xFF equates to 0x001F (Blue occupes first 5 bits)", 0x00, 0x00, 0xFF, 5, 5, 0x001F),
+    std::make_tuple("Validate writing RGB value 0xFF 0xFF 0x00 equates to 0x001F (Last 11 bits equal 1)", 0xFF, 0xFF, 0x00, 5, 5, 0xFFE0),
+    std::make_tuple("Validate writing RGB value 0xFF 0x00 0xFF equates to 0x001F (First 5 and last 5 bits are equal to 1)", 0xFF, 0x00, 0xFF, 5, 5, 0xF81F),
+    std::make_tuple("Validate writing RGB value 0x00 0xFF 0xFF equates to 0x001F (First 11 bits equal 1)", 0x00, 0xFF, 0xFF, 5, 5, 0x07FF)
 ));
 
-class FillPixelValidateInputsTextFixture : public testing::TestWithParam<std::tuple<matrix*, uint8_t, uint8_t, uint8_t, mat_fn_status, mat_fn_status>> {
+class FillPixelValidateInputsTextFixture : public testing::TestWithParam<std::tuple<std::string,matrix*, uint8_t, uint8_t, uint8_t, mat_fn_status, mat_fn_status>> {
 };
 
 TEST_P(FillPixelValidateInputsTextFixture, ValidateFillPixelInputs) {
-    matrix* mat = std::get<0>(GetParam());
-    uint8_t pt_size = std::get<1>(GetParam());
-    uint8_t row = std::get<2>(GetParam());
-    uint8_t col = std::get<3>(GetParam());
-    mat_fn_status expected_status = std::get<4>(GetParam());
-    mat_fn_status expected_deallocation_status = std::get<5>(GetParam());
+    std::string testCaseTitle;
+    matrix* mat = nullptr;
+    uint8_t pt_size, row, col;
+    mat_fn_status expected_status, expected_deallocation_status;
 
-    std::cout << "\tParameters: \n";
-    std::cout << "\tpoint size: " << pt_size << std::endl;
-    std::cout << "\trow: " << std::hex << row << std::endl;
-    std::cout << "\tcol: " << std::to_string(col) << std::endl;
-    std::cout << "\texpected status: " << expected_status << std::endl;
-    std::cout << "\texpected deallocation status: " << expected_deallocation_status << std::endl;
+    std::tie(testCaseTitle, mat, pt_size, row, col, expected_status, expected_deallocation_status) = GetParam();
+
+    std::cout << "Test Case: " << testCaseTitle << std::endl;
+    std::cout << "\t\tParameters: \n";
+    std::cout << "\t\tpoint size: " << pt_size << std::endl;
+    std::cout << "\t\trow: " << std::hex << row << std::endl;
+    std::cout << "\t\tcol: " << std::to_string(col) << std::endl;
+    std::cout << "\t\texpected status: " << expected_status << std::endl;
+    std::cout << "\t\texpected deallocation status: " << expected_deallocation_status << std::endl;
 
     mat_fn_status stat = fill_pixel(mat, 0xFFFF, pt_size, row, col);
 
@@ -217,14 +252,49 @@ TEST_P(FillPixelValidateInputsTextFixture, ValidateFillPixelInputs) {
     ASSERT_EQ(stat, expected_deallocation_status);
 }
 
-INSTANTIATE_TEST_CASE_P(FillPixelInputValues, FillPixelValidateInputsTextFixture, testing::Values(
-    std::make_tuple(nullptr, 1, 1, 1, NULL_MAT, NULL_MAT),
-    std::make_tuple(allocate_dummy_matrix(), 1, 100, 1, NULL_MAT, NULL_MAT),
-    std::make_tuple(allocate_dummy_matrix(), 1, 1, 100, INVALID_PARAM, VALID_OP),
-    std::make_tuple(allocate_dummy_matrix(), 1, 100, 100, INVALID_PARAM, VALID_OP),
-    std::make_tuple(allocate_dummy_matrix(), 0, 1, 1, INVALID_PARAM, VALID_OP),
-    std::make_tuple(allocate_dummy_matrix(), 1, 1, 1, VALID_OP, VALID_OP),
-    std::make_tuple(allocate_dummy_matrix(), 100, 1, 1, VALID_OP, VALID_OP)
+INSTANTIATE_TEST_SUITE_P(FillPixelInputValues, FillPixelValidateInputsTextFixture, testing::Values(
+    std::make_tuple("Write to Null Matrix", nullptr, 1, 1, 1, NULL_MAT, NULL_MAT),
+
+    std::make_tuple("Write to Invalid Row Dimension (VERTICAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), 1, INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row Dimension (VERTICAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM), 1, INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Valid Row Dimension (VERTICAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), 1, VALID_OP, VALID_OP),
+
+    std::make_tuple("Write to Invalid Column Dimension (HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, 1, (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Column Dimension (HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, 1, (HORIZONTAL_DIM), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Valid Column Dimension (HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, 1, (HORIZONTAL_DIM - 1), VALID_OP, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM + 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 1), INVALID_PARAM, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM + 0)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM + 0), INVALID_PARAM, VALID_OP),
+
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 1, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 1), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM + 0, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM + 0), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Write to Invalid Row and Column Dimension (VERTICAL_DIM - 1, HORIZONTAL_DIM - 1)", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP, VALID_OP),
+
+    std::make_tuple("Fill pixel in matrix with 0pt size", allocate_dummy_matrix(), 0, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Fill pixel in matrix with -1pt size (pt parameter is uint8_t. Be warned and turn on implicit conversions)", allocate_dummy_matrix(), -1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), INVALID_PARAM, VALID_OP),
+    std::make_tuple("Fill pixel in matrix with 1pt size", allocate_dummy_matrix(), 1, (VERTICAL_DIM - 1), (HORIZONTAL_DIM - 1), VALID_OP, VALID_OP),
+    std::make_tuple("Fill pixel in matrix with 100pt size (Shows that internal bounding logic functions)", allocate_dummy_matrix(), 100, 1, 1, VALID_OP, VALID_OP)
 ));
 
 // Vertical line verification is a very interesting to test.
@@ -232,16 +302,16 @@ INSTANTIATE_TEST_CASE_P(FillPixelInputValues, FillPixelValidateInputsTextFixture
 //  -> Then we will need to do sample manual verification that
 //      the data written out is what we expect it to be.    
 
-TEST(DrawVerticalLine, sample) 
-{
-    matrix* mat = allocate_dummy_matrix();
-
-    uint16_t color = 0xFFFF;
-    uint16_t pt_size = 1;
-    uint16_t col = 5;
-    uint16_t start_row = 1;
-    uint16_t end_row = 4;
-}
+//TEST(DrawVerticalLine, sample) 
+//{
+//    matrix* mat = allocate_dummy_matrix();
+//
+//    uint16_t color = 0xFFFF;
+//    uint16_t pt_size = 1;
+//    uint16_t col = 5;
+//    uint16_t start_row = 1;
+//    uint16_t end_row = 4;
+//}
 
 int main(int argc, char* argv[]) 
 {
