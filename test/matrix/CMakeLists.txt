@@ -1,8 +1,12 @@
 include_directories("../../include")
 
+set(MATRIX_TEST matrix_test)
+
 message(STATUS "foo include dir: ${SOURCES}")
 
-add_executable(matrix_test matrix_test.cpp "../../src/bitmap.c" "../../src/matrix.c" )
-target_link_libraries(matrix_test GTest::GTest GTest::Main)
+find_package(GTest CONFIG REQUIRED)
 
-gtest_discover_tests(matrix_test)
+add_executable(${MATRIX_TEST} matrix_test.cpp "../../src/bitmap.c" "../../src/matrix.c" )
+target_link_libraries(${MATRIX_TEST} GTest::gtest GTest::gtest_main)
+
+gtest_discover_tests(${MATRIX_TEST})
