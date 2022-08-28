@@ -1,0 +1,9 @@
+{
+	"dependencies": [
+		{
+			"name": "gtest",
+			"version>=": "1.11.0"
+		}
+	],
+	"builtin-baseline": "e85b5bb95a14ff7e014601e88a8dc2fea6798e33"
+}
