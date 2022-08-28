@@ -2,11 +2,13 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(matrix VERSION 0.1.0)
 
+
+
 include_directories( "include" )
 
 file( GLOB SOURCES "src/*.c" "include/*.h" )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-long-long -pedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -pedantic")
 
 find_program(CMAKE_C_CPPCHECK NAMES cppcheck)
 if (CMAKE_C_CPPCHECK)
