@@ -199,7 +199,7 @@ bool static validate_vertical_dimension(uint16_t vertical_dim, uint16_t start_y,
     return false;
   }
 
-  if (start_y >= vertical_dim || start_y < 0)
+  if (end_y >= vertical_dim || end_y < 0)
   {
     printf("validate_vertical_dimension: end_y dimension is invalid");
     return false;
@@ -319,10 +319,15 @@ mat_fn_status draw_vertical_line(matrix *mat, uint16_t color, uint16_t pt_size,
     return NULL_MAT;
   }
 
+  if (pt_size == 0) {
+    printf("draw_vertical_line: pt_size is zero.\n");
+    return INVALID_PARAM;
+  }
+
   if (start_row == end_row)
   {
     fill_pixel(mat, color, pt_size, start_row, col_position);
-    return INVALID_PARAM;
+    return VALID_OP;
   }
 
   if (start_row > end_row)
@@ -339,7 +344,7 @@ mat_fn_status draw_vertical_line(matrix *mat, uint16_t color, uint16_t pt_size,
     return INVALID_PARAM;
   }
 
-  for (uint16_t row = start_row; row < end_row; row++)
+  for (uint16_t row = start_row; row <= end_row; row++)
   {
     fill_pixel(mat, color, pt_size, row, col_position);
   }
@@ -380,8 +385,7 @@ mat_fn_status draw_horizontal_line(matrix *mat, uint16_t color, uint16_t pt_size
 
   if (!valid_dims)
   {
-    printf(
-        "draw_perfect_horizontal_line: Invalid dimension found, returning.\n");
+    printf("draw_perfect_horizontal_line: Invalid dimension found, returning.\n");
     return INVALID_PARAM;
   }
 
